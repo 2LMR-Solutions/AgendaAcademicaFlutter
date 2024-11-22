@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'pagina_inicial.dart'; // Importe a página inicial
 
-class NomeUsuario extends StatefulWidget {
-  const NomeUsuario({super.key});
+class PaginaLogin extends StatefulWidget {
+  const PaginaLogin({super.key});
 
   @override
-  State<NomeUsuario> createState() => _NomeUsuarioState();
+  State<PaginaLogin> createState() => _PaginaLoginState();
 }
 
-class _NomeUsuarioState extends State<NomeUsuario> {
+class _PaginaLoginState extends State<PaginaLogin> {
   final _formKey = GlobalKey<FormState>(); // Chave para o formulário
   final TextEditingController _nomeController = TextEditingController(); // Controlador para o campo de texto
 
@@ -16,7 +16,12 @@ class _NomeUsuarioState extends State<NomeUsuario> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        color: Colors.purple, // Fundo roxo
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('lib/assets/images/login.jpg'), // Caminho da imagem
+            fit: BoxFit.cover, // Faz a imagem preencher todo o fundo
+          ),
+        ),
         child: Center(
           child: Form(
             key: _formKey, // Conecta o formulário à chave
@@ -48,17 +53,23 @@ class _NomeUsuarioState extends State<NomeUsuario> {
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
                       ),
+                      // Estilo da mensagem de erro
+                      errorStyle: const TextStyle(
+                        color: Colors.yellow, // Altere a cor aqui
+                        fontWeight: FontWeight.bold, // Personalize o estilo
+                      ),
                     ),
                     style: const TextStyle(color: Colors.white),
                     // Validação do campo
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Por favor, digite seu nome.';
+                        return 'Por favor, digite seu nome.'; // Mensagem de erro
                       }
                       return null;
                     },
                   ),
                 ),
+
                 const SizedBox(height: 20), // Espaçamento entre o campo e o botão
 
                 // Botão "Entrar"
