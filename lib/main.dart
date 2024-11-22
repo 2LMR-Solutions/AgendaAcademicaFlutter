@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const NomeUsuario(), // Usa o widget da página inicial
+      home: const PaginaLogin(), // Usa o widget da página inicial
     );
   }
 }
