@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'calendario.dart';
+import 'perfil.dart';
 
 class PaginaInicial extends StatelessWidget {
   final String nome; // Variável para receber o nome
@@ -122,6 +124,28 @@ class PaginaInicial extends StatelessWidget {
         iconSize: 40,
         showSelectedLabels: false,
         showUnselectedLabels: false,
+        onTap: (index) {
+          switch (index) {
+            case 0: // Índice do botão "Home"
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const PaginaInicial(nome: 'teste')),
+              );
+              break;
+            case 1: // Índice do botão "Calendário"
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const AgendaPage()),
+              );
+              break;
+            case 2: // Índice do botão "Perfil"
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const PerfilPage()),
+              );
+             break;
+          }
+        },
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
