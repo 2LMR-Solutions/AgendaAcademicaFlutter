@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Necessário para usar inputFormatters
 import 'pagina_inicial.dart'; // Importe a página inicial
 
 class PaginaLogin extends StatefulWidget {
@@ -60,6 +61,9 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       ),
                     ),
                     style: const TextStyle(color: Colors.white),
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(15), // Limita a entrada a 15 caracteres
+                    ],
                     // Validação do campo
                     validator: (value) {
                       if (value == null || value.isEmpty) {
