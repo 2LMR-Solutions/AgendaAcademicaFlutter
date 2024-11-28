@@ -11,7 +11,7 @@ class PaginaInicial extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.purple,
+        backgroundColor: const Color.fromRGBO(181, 33, 226, 1),
         elevation: 10,
         shadowColor: Colors.grey,
         shape: const RoundedRectangleBorder(
@@ -22,19 +22,33 @@ class PaginaInicial extends StatelessWidget {
         ),
         toolbarHeight: 170,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Ajusta o espaçamento
           children: <Widget>[
-            // Exibe o nome do usuário na AppBar
-            Text(
-              'Olá, $nome!',
-              style: TextStyle(
-                fontSize: 30,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+            // Coloca o "Olá," e o nome do usuário em uma coluna
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Olá,', // Texto fixo
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                Text(
+                  '$nome', // Nome do usuário
+                  style: const TextStyle(
+                    fontSize: 25,
+                    fontFamily: 'Roboto',
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
             ),
+            // Ícone de perfil
             IconButton(
               icon: const Icon(
                 Icons.account_circle,
