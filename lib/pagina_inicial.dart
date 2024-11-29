@@ -1,11 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'calendario.dart';
 import 'perfil.dart';
 
-class PaginaInicial extends StatelessWidget {
-  final String nome; // Variável para receber o nome
+class PaginaInicial extends StatefulWidget {
+  const PaginaInicial({super.key});
 
-  const PaginaInicial({super.key, required this.nome}); // Recebe o nome via construtor
+  @override
+  State<PaginaInicial> createState() => _PaginaInicialState();
+}
+
+class _PaginaInicialState extends State<PaginaInicial> {
+  late String nome = 'Usuário'; // Nome padrão caso não seja encontrado nos SharedPreferences
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserName(); // Carregar o nome do usuário ao inicializar
+  }
+
+  // Método para carregar o nome do SharedPreferences
+  Future<void> _loadUserName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      nome = prefs.getString('user_name') ?? 'Usuário';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +58,7 @@ class PaginaInicial extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '$nome', // Nome do usuário
+                  nome, // Nome do usuário
                   style: const TextStyle(
                     fontSize: 25,
                     fontFamily: 'Roboto',
@@ -74,13 +94,13 @@ class PaginaInicial extends StatelessWidget {
         child: Column(
           children: [
             // Texto fixo
-            Padding(
-              padding: const EdgeInsets.all(16.0),
+           const Padding(
+              padding: EdgeInsets.all(16.0),
               child: Align(
                 alignment: Alignment.centerLeft, // Alinha à esquerda
                 child: Text(
                   'Atividades',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontFamily: 'Roboto',
                     fontWeight: FontWeight.w500,
@@ -143,7 +163,7 @@ class PaginaInicial extends StatelessWidget {
             case 0: // Índice do botão "Home"
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const PaginaInicial(nome: 'teste')),
+                MaterialPageRoute(builder: (context) => const PaginaInicial()),
               );
               break;
             case 1: // Índice do botão "Calendário"
