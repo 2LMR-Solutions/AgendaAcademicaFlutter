@@ -53,7 +53,7 @@ class _AgendaPageState extends State<AgendaPage> {
             case 0: //botão "Home"
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const PaginaInicial(nome: 'teste')),
+                MaterialPageRoute(builder: (context) => const PaginaInicial()),
               );
               break;
             case 1: //botão "Calendario"

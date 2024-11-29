@@ -28,7 +28,7 @@ class PerfilPage extends StatelessWidget {
             case 0: // Índice do botão "Home"
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const PaginaInicial(nome: 'teste')),
+                MaterialPageRoute(builder: (context) => const PaginaInicial()),
               );
               break;
             case 1: // Índice do botão "Calendário"

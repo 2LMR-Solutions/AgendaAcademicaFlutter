@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Necessário para usar inputFormatters
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pagina_inicial.dart'; // Importe a página inicial
 
 class PaginaLogin extends StatefulWidget {
@@ -78,15 +79,16 @@ class _PaginaLoginState extends State<PaginaLogin> {
 
                 // Botão "Entrar"
                 ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
+                  onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
                       // Navegar para a página inicial passando o nome como parâmetro
+                      // Salvar o nome no SharedPreferences
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.setString('user_name', _nomeController.text);
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => PaginaInicial(
-                            nome: _nomeController.text, // Passa o nome digitado
-                          ),
+                          builder: (context) => const PaginaInicial(), // Sem passar o nome
                         ),
                       );
                     }
