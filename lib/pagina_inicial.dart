@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'calendario.dart';
 import 'perfil.dart';
+import 'adicionar_atividade.dart';
 
 class PaginaInicial extends StatefulWidget {
   const PaginaInicial({super.key});
@@ -82,7 +83,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white,),
           onPressed: () {
             // Voltar para a tela de login
             Navigator.pop(context);
@@ -151,9 +152,13 @@ class _PaginaInicialState extends State<PaginaInicial> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        child: const Icon(Icons.add),
-      ),
+        onPressed: () {Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const TaskScreen(),
+              ),
+            );
+          }, child: const Icon(Icons.add),
+        ),
+
       bottomNavigationBar: BottomNavigationBar(
         iconSize: 40,
         showSelectedLabels: false,
