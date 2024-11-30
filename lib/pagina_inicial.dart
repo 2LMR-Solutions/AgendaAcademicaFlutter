@@ -4,6 +4,7 @@ import 'dart:convert'; // Para converter para JSON
 import 'calendario.dart';
 import 'perfil.dart';
 import 'adicionar_atividade.dart';
+import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
 
 class PaginaInicial extends StatefulWidget {
@@ -101,6 +102,40 @@ class _PaginaInicialState extends State<PaginaInicial> {
             ),
           ),
           actions: [
+            // Navegar para a tela de edição com os dados da atividade
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fechar o dialog atual
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TelaEditarAtividade(
+                      atividade: atividade, // Passando os dados para editar
+                    ),
+                  ),
+                ).then((atividadeEditada) {
+                  if (atividadeEditada != null) {
+                    if (atividadeEditada == 'excluida') {
+                      // A atividade foi excluída, remova da lista
+                      setState(() {
+                        atividades.remove(atividade);
+                        _salvarAtividades(); // Salva as atividades restantes
+                      });
+                    } else {
+                      // Atualize a atividade na lista
+                      setState(() {
+                        final index = atividades.indexOf(atividade);
+                        if (index != -1) {
+                          atividades[index] = atividadeEditada;
+                          _salvarAtividades(); // Salva as atividades editadas
+                        }
+                      });
+                    }
+                  }
+                });
+              },
+              child: const Text('Editar', style: TextStyle(color: Colors.blue)),
+            ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
@@ -112,6 +147,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
       },
     );
   }
+
+
 
   // Função para bloquear o botão de voltar (pop)
   Future<bool> _onWillPop() async {
@@ -201,7 +238,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                     ? const Center(
                   child: Text(
                     'Nenhuma atividade cadastrada',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w100),
                   ),
                 )
                     : ListView.builder(

@@ -1,11 +1,11 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'pagina_inicial.dart';
 
 class TelaEditarAtividade extends StatefulWidget {
-  const TelaEditarAtividade({super.key});
+  final Map<String, dynamic> atividade;
+
+  const TelaEditarAtividade({super.key, required this.atividade});
 
   @override
   _TelaEditarAtividadeState createState() => _TelaEditarAtividadeState();
@@ -20,7 +20,19 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
   List<TextEditingController> controladoresSubtarefas = [];
   List<bool> subtarefasMarcadas = [];
 
-  // Função para selecionar a data
+  @override
+  void initState() {
+    super.initState();
+    controladorTitulo.text = widget.atividade['titulo'];
+    controladorDescricao.text = widget.atividade['descricao'];
+    controladorData.text = widget.atividade['data'];
+
+    for (var subtarefa in widget.atividade['subtarefas']) {
+      controladoresSubtarefas.add(TextEditingController(text: subtarefa['nome']));
+      subtarefasMarcadas.add(subtarefa['marcada']);
+    }
+  }
+
   Future<void> selecionarData(BuildContext contexto) async {
     final DateTime? selecionado = await showDatePicker(
       context: contexto,
@@ -37,44 +49,69 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
     }
   }
 
-  // Função chamada quando o estado do checkbox mudar
   void aoMudarCheckbox(int indice, bool? novoValor) {
     setState(() {
       subtarefasMarcadas[indice] = novoValor ?? false;
     });
   }
 
-  // Função para adicionar uma nova subtarefa
-  void adicionarSubtarefa() {
-    setState(() {
-      controladoresSubtarefas.add(TextEditingController());
-      subtarefasMarcadas.add(false);
-    });
-  }
+  void salvarEdicao() {
+    final titulo = controladorTitulo.text.trim();
+    final data = controladorData.text.trim();
 
- void cancelar(){
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const PaginaInicial()),
-              );
- }
-
-  @override
-  void initState() {
-    super.initState();
-    adicionarSubtarefa(); // Adiciona a primeira subtarefa
-  }
-
-  @override
-  void dispose() {
-    controladorTitulo.dispose();
-    controladorDescricao.dispose();
-    controladorData.dispose();
-    for (var controlador in controladoresSubtarefas) {
-      controlador.dispose();
+    if (titulo.isEmpty || data.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Título e data são obrigatórios!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
-    super.dispose();
+
+    final atividadeEditada = {
+      'titulo': titulo,
+      'descricao': controladorDescricao.text.trim(),
+      'data': data,
+      'subtarefas': List.generate(controladoresSubtarefas.length, (index) {
+        return {
+          'nome': controladoresSubtarefas[index].text.trim(),
+          'marcada': subtarefasMarcadas[index],
+        };
+      }),
+    };
+
+    Navigator.pop(context, atividadeEditada); // Retorna os dados editados
   }
+
+// Função para excluir a atividade
+  void excluirAtividade() {
+    showDialog(
+      context: context,
+      builder: (BuildContext contexto) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: const Text('Tem certeza de que deseja excluir esta atividade?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(contexto).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(contexto).pop();
+                Navigator.pop(context, 'excluida'); // Retorna um sinal de exclusão
+              },
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext contexto) {
@@ -87,8 +124,6 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
           },
         ),
         backgroundColor: const Color.fromRGBO(181, 33, 226, 1),
-        elevation: 4,
-        shadowColor: Colors.grey,
         title: const Text(
           "Editar Atividade",
           style: TextStyle(
@@ -119,10 +154,7 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
               const SizedBox(height: 20),
               TextField(
                 controller: controladorDescricao,
-                style: const TextStyle(
-                  fontFamily: 'Roboto',
-                  fontSize: 10,
-                ),
+                style: const TextStyle(fontFamily: 'Roboto', fontSize: 10),
                 decoration: const InputDecoration(
                   hintText: "Descrição",
                   hintStyle: TextStyle(color: Color(0xFFb521e2)),
@@ -164,7 +196,10 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                         onChanged: (texto) {
                           if (texto.isNotEmpty &&
                               i == controladoresSubtarefas.length - 1) {
-                            adicionarSubtarefa();
+                            setState(() {
+                              controladoresSubtarefas.add(TextEditingController());
+                              subtarefasMarcadas.add(false);
+                            });
                           }
                         },
                       ),
@@ -183,7 +218,7 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                       decoration: InputDecoration(
                         hintText: "Data de Entrega",
                         hintStyle:
-                            const TextStyle(color: Color(0xFF3e3e3e)),
+                        const TextStyle(color: Color(0xFF3e3e3e)),
                         border: const OutlineInputBorder(
                             borderSide: BorderSide(color: Color(0xFFb521e2))),
                         prefixIcon: IconButton(
@@ -196,37 +231,73 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                 ],
               ),
               const SizedBox(height: 20),
-             Row(
+              // Botões "Salvar" e "Cancelar"
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed: null,
+                    onPressed: salvarEdicao,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                       elevation: 2,
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700, 
-                    ),
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     child: const Text("Salvar Edição"),
                   ),
                   ElevatedButton(
-                    onPressed: cancelar,
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PaginaInicial()),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                      padding:
+                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
                       elevation: 2,
-                      backgroundColor: Colors.red,
+                      backgroundColor: Colors.lightBlueAccent,
                       foregroundColor: Colors.white,
                       textStyle: const TextStyle(
-                      fontWeight: FontWeight.w700 
-                    ),
+                        fontWeight: FontWeight.w700,
                       ),
+                    ),
                     child: const Text("Cancelar"),
                   ),
                 ],
               ),
+              const SizedBox(height: 20), // Espaçamento entre os botões
+              // Centralizando o botão de "Excluir Atividade"
+              Center(
+                child: ElevatedButton(
+                  onPressed: excluirAtividade, // Botão de exclusão
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    elevation: 2,
+                    backgroundColor: Colors.redAccent,
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min, // Certifique-se de que o botão tenha o tamanho mínimo necessário
+                    children: const [
+                      Text("Excluir Atividade"),
+                      SizedBox(width: 8), // Espaço entre o texto e o ícone
+                      Icon(
+                        Icons.delete, // Ícone de lixeira
+                        color: Colors.white, // Cor do ícone
+                      ),
+                    ],
+                  ),
+                ),
+              )
+
             ],
           ),
         ),
