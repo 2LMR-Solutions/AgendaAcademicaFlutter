@@ -2,10 +2,13 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pagina_inicial.dart';
 
 class TelaAtividade extends StatefulWidget {
-  const TelaAtividade({super.key});
+  final Function(Map<String, dynamic>) adicionarAtividade;
+
+  const TelaAtividade({super.key, required this.adicionarAtividade});
 
   @override
   _TelaAtividadeState createState() => _TelaAtividadeState();
@@ -53,56 +56,49 @@ class _TelaAtividadeState extends State<TelaAtividade> {
   }
 
  // Função para salvar atividade e redirecionar
-void salvarAtividade() {
-  String titulo = controladorTitulo.text.trim(); // Remove espaços desnecessários
-  String descricao = controladorDescricao.text.trim();
-  String data = dataFormatada.trim(); // A data deve ser validada também
+  void salvarAtividade() {
+    String titulo = controladorTitulo.text.trim();
+    String descricao = controladorDescricao.text.trim();
+    String data = dataFormatada.trim();
 
-  // Verifica se título, descrição e data estão preenchidos
-  if (titulo.isEmpty || descricao.isEmpty || data.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Título, descrição e data são obrigatórios!'),
-        backgroundColor: Colors.red, // Cor para chamar atenção
-      ),
-    );
-    return; // Interrompe a execução da função
-  }
-
-  List<Map<String, dynamic>> subtarefas = [];
-  for (int i = 0; i < controladoresSubtarefas.length; i++) {
-    if (controladoresSubtarefas[i].text.isNotEmpty) {
-      subtarefas.add({
-        'nome': controladoresSubtarefas[i].text,
-        'marcada': subtarefasMarcadas[i],
-      });
+    if (titulo.isEmpty || data.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Título e data são obrigatórios!'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
+
+    List<Map<String, dynamic>> subtarefas = [];
+    for (int i = 0; i < controladoresSubtarefas.length; i++) {
+      if (controladoresSubtarefas[i].text.isNotEmpty) {
+        subtarefas.add({
+          'nome': controladoresSubtarefas[i].text,
+          'marcada': subtarefasMarcadas[i],
+        });
+      }
+    }
+
+    // Dados da nova atividade
+    Map<String, dynamic> novaAtividade = {
+      'titulo': titulo,
+      'descricao': descricao,
+      'data': data,
+      'subtarefas': subtarefas,
+    };
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Atividade salva com sucesso!')),
+    );
+
+    // Redirecionar para a tela inicial após o feedback
+    Future.delayed(const Duration(seconds: 1), () {
+      Navigator.pop(context); // Retorna à tela inicial
+      // Adiciona à lista e retorna para a página inicial
+      widget.adicionarAtividade(novaAtividade);
+    });
   }
-
-  // Dados consolidados
-  Map<String, dynamic> dadosAtividade = {
-    'titulo': titulo,
-    'descricao': descricao,
-    'data': data,
-    'subtarefas': subtarefas,
-  };
-
-  // Exibir os dados no console ou enviar para uma API
-  print(dadosAtividade);
-
-  // Feedback visual para o usuário e redirecionamento
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('Atividade salva com sucesso!')),
-  );
-
-  // Redirecionar para a tela inicial após o feedback
-  Future.delayed(const Duration(seconds: 2), () {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const PaginaInicial()),
-    ); // Retorna à tela inicial
-  });
-}
 
 
   @override
@@ -228,7 +224,7 @@ void salvarAtividade() {
                       readOnly: true,
                       style: const TextStyle(fontFamily: 'Roboto', fontSize: 20),
                       decoration: InputDecoration(
-                        hintText: "Selecionar Data",
+                        hintText: "Data de entrega",
                         hintStyle:
                             const TextStyle(color: Color(0xFF3e3e3e)),
                         border: const OutlineInputBorder(

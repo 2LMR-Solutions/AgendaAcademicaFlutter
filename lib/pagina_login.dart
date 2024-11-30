@@ -10,6 +10,21 @@ class PaginaLogin extends StatefulWidget {
   State<PaginaLogin> createState() => _PaginaLoginState();
 }
 
+class LetrasInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    // Permite apenas letras e espaços
+    final RegExp regExp = RegExp(r'^[a-zA-Z\s]*$');
+
+    if (regExp.hasMatch(newValue.text)) {
+      return newValue; // Retorna o valor atualizado se válido
+    } else {
+      return oldValue; // Mantém o valor antigo se inválido
+    }
+  }
+}
+
 class _PaginaLoginState extends State<PaginaLogin> {
   final _formKey = GlobalKey<FormState>(); // Chave para o formulário
   final TextEditingController _nomeController = TextEditingController(); // Controlador para o campo de texto
@@ -64,6 +79,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     style: const TextStyle(color: Colors.white),
                     inputFormatters: [
                       LengthLimitingTextInputFormatter(15), // Limita a entrada a 15 caracteres
+                      LetrasInputFormatter(), // Nosso formatter personalizado
                     ],
                     // Validação do campo
                     validator: (value) {
@@ -74,6 +90,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     },
                   ),
                 ),
+
 
                 const SizedBox(height: 20), // Espaçamento entre o campo e o botão
 
