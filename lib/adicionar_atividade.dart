@@ -1,65 +1,136 @@
+// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'pagina_inicial.dart';
 
-class TaskScreen extends StatefulWidget {
-  const TaskScreen({super.key});
+class TelaAtividade extends StatefulWidget {
+  const TelaAtividade({super.key});
 
   @override
-  _TaskScreenState createState() => _TaskScreenState();
+  _TelaAtividadeState createState() => _TelaAtividadeState();
 }
 
-class _TaskScreenState extends State<TaskScreen> {
-  TextEditingController _dateController = TextEditingController();
-  String _formattedDate = "";
-  List<TextEditingController> _subtaskControllers = [];
-  List<bool> _subtaskChecked = [];
+class _TelaAtividadeState extends State<TelaAtividade> {
+  final TextEditingController controladorData = TextEditingController();
+  final TextEditingController controladorTitulo = TextEditingController();
+  final TextEditingController controladorDescricao = TextEditingController();
+
+  String dataFormatada = "";
+  List<TextEditingController> controladoresSubtarefas = [];
+  List<bool> subtarefasMarcadas = [];
 
   // Função para selecionar a data
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
+  Future<void> selecionarData(BuildContext contexto) async {
+    final DateTime? selecionado = await showDatePicker(
+      context: contexto,
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
     );
 
-    if (picked != null && picked != DateTime.now()) {
+    if (selecionado != null) {
       setState(() {
-        _formattedDate = DateFormat('dd/MM/yyyy').format(picked);
-        _dateController.text = _formattedDate;
+        dataFormatada = DateFormat('dd/MM/yyyy').format(selecionado);
+        controladorData.text = dataFormatada;
       });
     }
   }
 
   // Função chamada quando o estado do checkbox mudar
-  void _onCheckboxChanged(int index, bool? newValue) {
+  void aoMudarCheckbox(int indice, bool? novoValor) {
     setState(() {
-      _subtaskChecked[index] = newValue ?? false;
+      subtarefasMarcadas[indice] = novoValor ?? false;
     });
   }
 
   // Função para adicionar uma nova subtarefa
-  void _addSubtask() {
+  void adicionarSubtarefa() {
     setState(() {
-      _subtaskControllers.add(TextEditingController());
-      _subtaskChecked.add(false);
+      controladoresSubtarefas.add(TextEditingController());
+      subtarefasMarcadas.add(false);
     });
   }
+
+ // Função para salvar atividade e redirecionar
+void salvarAtividade() {
+  String titulo = controladorTitulo.text.trim(); // Remove espaços desnecessários
+  String descricao = controladorDescricao.text.trim();
+  String data = dataFormatada.trim(); // A data deve ser validada também
+
+  // Verifica se título, descrição e data estão preenchidos
+  if (titulo.isEmpty || descricao.isEmpty || data.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Título, descrição e data são obrigatórios!'),
+        backgroundColor: Colors.red, // Cor para chamar atenção
+      ),
+    );
+    return; // Interrompe a execução da função
+  }
+
+  List<Map<String, dynamic>> subtarefas = [];
+  for (int i = 0; i < controladoresSubtarefas.length; i++) {
+    if (controladoresSubtarefas[i].text.isNotEmpty) {
+      subtarefas.add({
+        'nome': controladoresSubtarefas[i].text,
+        'marcada': subtarefasMarcadas[i],
+      });
+    }
+  }
+
+  // Dados consolidados
+  Map<String, dynamic> dadosAtividade = {
+    'titulo': titulo,
+    'descricao': descricao,
+    'data': data,
+    'subtarefas': subtarefas,
+  };
+
+  // Exibir os dados no console ou enviar para uma API
+  print(dadosAtividade);
+
+  // Feedback visual para o usuário e redirecionamento
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text('Atividade salva com sucesso!')),
+  );
+
+  // Redirecionar para a tela inicial após o feedback
+  Future.delayed(const Duration(seconds: 2), () {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const PaginaInicial()),
+    ); // Retorna à tela inicial
+  });
+}
+
 
   @override
   void initState() {
     super.initState();
-    _addSubtask(); // Adiciona a primeira subtarefa inicialmente
+    adicionarSubtarefa(); // Adiciona a primeira subtarefa inicialmente
   }
 
   @override
-  Widget build(BuildContext context) {
+  void dispose() {
+    // Dispose dos controladores para evitar vazamento de memória
+    controladorTitulo.dispose();
+    controladorDescricao.dispose();
+    controladorData.dispose();
+    for (var controlador in controladoresSubtarefas) {
+      controlador.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext contexto) {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
-            Navigator.pop(context);
+            Navigator.pop(contexto);
           },
         ),
         backgroundColor: const Color.fromRGBO(181, 33, 226, 1),
@@ -81,9 +152,10 @@ class _TaskScreenState extends State<TaskScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const TextField(
-                style: TextStyle(fontFamily: 'Roboto', fontSize: 16),
-                decoration: InputDecoration(
+              TextField(
+                controller: controladorTitulo,
+                style: const TextStyle(fontFamily: 'Roboto', fontSize: 16),
+                decoration: const InputDecoration(
                   hintText: "Título",
                   hintStyle: TextStyle(color: Color(0xFFb521e2)),
                   border: InputBorder.none,
@@ -92,15 +164,17 @@ class _TaskScreenState extends State<TaskScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-              const TextField(
-                style: TextStyle(
+              TextField(
+                controller: controladorDescricao,
+                style: const TextStyle(
                   fontFamily: 'Roboto',
                   fontSize: 10,
                 ),
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   hintText: "Descrição",
                   hintStyle: TextStyle(color: Color(0xFFb521e2)),
-                  border: OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFb521e2))),
+                  border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFb521e2))),
                 ),
                 maxLines: 3,
               ),
@@ -114,30 +188,30 @@ class _TaskScreenState extends State<TaskScreen> {
               ),
               const SizedBox(height: 10),
               // Lista de subtarefas
-              for (int i = 0; i < _subtaskControllers.length; i++)
+              for (int i = 0; i < controladoresSubtarefas.length; i++)
                 Row(
                   children: [
                     Checkbox(
-                      value: _subtaskChecked[i],
-                      onChanged: (bool? newValue) {
-                        _onCheckboxChanged(i, newValue);
+                      value: subtarefasMarcadas[i],
+                      onChanged: (bool? novoValor) {
+                        aoMudarCheckbox(i, novoValor);
                       },
                       activeColor: const Color(0xFFb521e2),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: TextField(
-                        controller: _subtaskControllers[i],
+                        controller: controladoresSubtarefas[i],
                         style: const TextStyle(fontSize: 10),
-                        decoration: InputDecoration(
+                        decoration: const InputDecoration(
                           hintText: "--Exemplo Subtarefa--",
                           hintStyle: TextStyle(color: Color(0xFFb521e2)),
                           border: InputBorder.none,
                         ),
-                        onChanged: (text) {
-                          // Quando o texto mudar, verificamos se a subtarefa está preenchida
-                          if (text.isNotEmpty && i == _subtaskControllers.length - 1) {
-                            _addSubtask(); // Adiciona uma nova subtarefa quando o campo atual não está vazio
+                        onChanged: (texto) {
+                          if (texto.isNotEmpty &&
+                              i == controladoresSubtarefas.length - 1) {
+                            adicionarSubtarefa();
                           }
                         },
                       ),
@@ -146,21 +220,22 @@ class _TaskScreenState extends State<TaskScreen> {
                 ),
               const Divider(color: Color(0xFFb521e2)),
               const SizedBox(height: 20),
-              const SizedBox(height: 10),
               Row(
                 children: [
                   Flexible(
                     child: TextField(
-                      controller: _dateController,
+                      controller: controladorData,
                       readOnly: true,
                       style: const TextStyle(fontFamily: 'Roboto', fontSize: 20),
                       decoration: InputDecoration(
                         hintText: "Selecionar Data",
-                        hintStyle: const TextStyle(color: Color(0xFF3e3e3e)),
-                        border: const OutlineInputBorder(borderSide: BorderSide(color: Color(0xFFb521e2))),
+                        hintStyle:
+                            const TextStyle(color: Color(0xFF3e3e3e)),
+                        border: const OutlineInputBorder(
+                            borderSide: BorderSide(color: Color(0xFFb521e2))),
                         prefixIcon: IconButton(
                           icon: const Icon(Icons.calendar_today),
-                          onPressed: () => _selectDate(context),
+                          onPressed: () => selecionarData(contexto),
                         ),
                       ),
                     ),
@@ -168,12 +243,12 @@ class _TaskScreenState extends State<TaskScreen> {
                 ],
               ),
               const SizedBox(height: 20),
-              const SizedBox(height: 10),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: salvarAtividade,
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 20),
                     elevation: 2,
                   ),
                   child: const Text("Salvar"),

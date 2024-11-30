@@ -153,7 +153,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {Navigator.push(
-        context, MaterialPageRoute(builder: (context) => const TaskScreen(),
+        context, MaterialPageRoute(builder: (context) => const TelaAtividade(),
               ),
             );
           }, child: const Icon(Icons.add),
