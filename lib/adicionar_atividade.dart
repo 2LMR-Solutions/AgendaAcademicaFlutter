@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pagina_inicial.dart';
 
 class TelaAtividade extends StatefulWidget {
@@ -60,10 +61,10 @@ class _TelaAtividadeState extends State<TelaAtividade> {
     String descricao = controladorDescricao.text.trim();
     String data = dataFormatada.trim();
 
-    if (titulo.isEmpty || descricao.isEmpty || data.isEmpty) {
+    if (titulo.isEmpty || data.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Título, descrição e data são obrigatórios!'),
+          content: Text('Título e data são obrigatórios!'),
           backgroundColor: Colors.red,
         ),
       );
