@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'calendario.dart';
 import 'perfil.dart';
 import 'adicionar_atividade.dart';
+import 'package:intl/intl.dart';
 
 class PaginaInicial extends StatefulWidget {
   const PaginaInicial({super.key});
@@ -40,7 +41,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 Text(atividade['descricao']),
                 const SizedBox(height: 10),
                 Text(
-                  'Data:',
+                  'Data final:',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(atividade['data']),
@@ -74,7 +75,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-
   // Método para carregar o nome do SharedPreferences
   Future<void> _loadUserName() async {
     final prefs = await SharedPreferences.getInstance();
@@ -83,8 +83,19 @@ class _PaginaInicialState extends State<PaginaInicial> {
     });
   }
 
+  // Função para ordenar as atividades pela data
+  void ordenarAtividades() {
+    atividades.sort((a, b) {
+      DateTime dataA = DateFormat('dd/MM/yyyy').parse(a['data']);
+      DateTime dataB = DateFormat('dd/MM/yyyy').parse(b['data']);
+      return dataA.isBefore(dataB) ? -1 : 1;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    ordenarAtividades(); // Ordena as atividades sempre que o widget for reconstruído
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color.fromRGBO(181, 33, 226, 1),
@@ -150,7 +161,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
         child: Column(
           children: [
             // Texto fixo
-           const Padding(
+            const Padding(
               padding: EdgeInsets.all(16.0),
               child: Align(
                 alignment: Alignment.centerLeft, // Alinha à esquerda
@@ -186,7 +197,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      '${atividade['descricao']}\nData: ${atividade['data']}',
+                      '${atividade['descricao']}\nData final: ${atividade['data']}',
                     ),
                     isThreeLine: true,
                     trailing: const Icon(Icons.more_horiz),
@@ -198,9 +209,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 },
               ),
             ),
-
-
-
           ],
         ),
       ),
@@ -213,6 +221,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 adicionarAtividade: (atividade) {
                   setState(() {
                     atividades.add(atividade); // Adiciona a nova atividade à lista
+                    ordenarAtividades(); // Reordena após adicionar
                   });
                 },
               ),
@@ -221,7 +230,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
         },
         child: const Icon(Icons.add),
       ),
-
       bottomNavigationBar: BottomNavigationBar(
         iconSize: 40,
         showSelectedLabels: false,
@@ -245,7 +253,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 context,
                 MaterialPageRoute(builder: (context) => const PerfilPage()),
               );
-             break;
+              break;
           }
         },
         items: const <BottomNavigationBarItem>[
