@@ -112,7 +112,9 @@ class _AgendaPageState extends State<AgendaPage> {
                 bool hasActivity = isActivityDay(day);
                 return Container(
                   decoration: BoxDecoration(
-                    color: hasActivity ? const Color.fromARGB(218, 76, 175, 79) : null, //cor do dia com atividade
+                    color: hasActivity
+                        ? const Color.fromARGB(218, 76, 175, 79)
+                        : null, // Cor do dia com atividade
                     shape: BoxShape.circle,
                   ),
                   child: Center(
@@ -125,23 +127,115 @@ class _AgendaPageState extends State<AgendaPage> {
                   ),
                 );
               },
+              headerTitleBuilder: (context, day) {
+                String monthName = getMonthName(day.month);
+                return GestureDetector(
+                  onTap: () async {
+                    //ao clicar no cabeçalho vai aparecer o model para selecionar o mes
+                    final selectedDate = await showYearMonthPicker(
+                      context: context,
+                      initialDate: today,
+                    );
+                    if (selectedDate != null) {
+                      setState(() {
+                        today = selectedDate;
+                      });
+                    }
+                  },
+                  child: Center(
+                    child: Text(
+                      '$monthName ${day.year}',
+                      style: const TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-            // onHeaderTapped: () async {
-            //   final DateTime? selectedDate = await showDatePicker(
-            //     context: context,
-            //     initialDate: today,
-            //     firstDate: DateTime(2010),
-            //     lastDate: DateTime(2050),
-            //   );
-            //   if (selectedDate != null && selectedDate != today) {
-            //     setState(() {
-            //       today = selectedDate;
-            //     });
-            //   }
-            // },
           ),
         ),
       ],
+    );
+  }
+
+  String getMonthName(int month) {
+    const monthNames = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    return monthNames[month - 1];
+  }
+
+  Future<DateTime?> showYearMonthPicker({
+    required BuildContext context,
+    required DateTime initialDate,
+  }) async {
+    int selectedYear = initialDate.year;
+    DateTime? selectedDate;
+
+    return await showDialog<DateTime>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("      Selecione Ano e Mês"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButton<int>(
+                value: selectedYear,
+                onChanged: (int? newYear) {
+                  if (newYear != null) {
+                    selectedYear = newYear;
+                  }
+                },
+                items: List.generate(41, (index) {
+                  int year = 2010 + index;
+                  return DropdownMenuItem(
+                    value: year,
+                    child: Text('$year'),
+                  );
+                }),
+              ),
+              const SizedBox(height: 16.0),
+              //selecao de mes
+              Wrap(
+                spacing: 5.0,
+                runSpacing: 5.0,
+                children: List.generate(12, (index) {
+                  String monthName = getMonthName(index + 1);
+                  return Container(
+                    width: 90.0,
+                    height: 50.0,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                      ),
+                      onPressed: () {
+                        selectedDate = DateTime(selectedYear, index + 1, 1);
+                        Navigator.pop(context, selectedDate);
+                      },
+                      child: Text(monthName),
+                    ),
+                  );
+                }),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, null);
+              },
+              child: const Text("Cancelar"),
+            ),
+          ],
+        );
+      },
     );
   }
 }
