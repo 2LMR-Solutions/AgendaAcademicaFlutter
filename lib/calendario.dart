@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'pagina_inicial.dart';
-import 'perfil.dart';
 
 class AgendaPage extends StatefulWidget {
   const AgendaPage({super.key});
@@ -12,6 +13,13 @@ class AgendaPage extends StatefulWidget {
 
 class _AgendaPageState extends State<AgendaPage> {
   DateTime today = DateTime.now();
+  List<Map<String, dynamic>> atividades = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _carregarAtividades();
+  }
 
   void _onDaySelected(DateTime day, DateTime focusedDay) {
     setState(() {
@@ -19,142 +27,217 @@ class _AgendaPageState extends State<AgendaPage> {
     });
   }
 
+  Future<void> _carregarAtividades() async {
+    final prefs = await SharedPreferences.getInstance();
+    final atividadesJson = prefs.getStringList('atividades') ?? [];
+    setState(() {
+      atividades = atividadesJson
+          .map((json) => jsonDecode(json))
+          .toList()
+          .cast<Map<String, dynamic>>();
+    });
+  }
+
   bool isActivityDay(DateTime day) {
-    //exemplo para marcar o dia 15 como dia com atividade em todos os meses
-    return day.day == 15;
+    //marcar o dia como dia com atividade
+    return atividades.any((atividade) {
+      try {
+        final dataAtividade = DateFormat('dd/MM/yyyy').parse(atividade['data']);
+        return isSameDay(day, dataAtividade);
+      } catch (_) {
+        return false;
+      }
+    });
+  }
+
+  List<Map<String, dynamic>> atividadesDoDia(DateTime day) {
+    return atividades.where((atividade) {
+      try {
+        final dataAtividade = DateFormat('dd/MM/yyyy').parse(atividade['data']);
+        return isSameDay(dataAtividade, day);
+      } catch (_) {
+        return false;
+      }
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agenda'),
-        backgroundColor: Colors.purple,
+        backgroundColor: const Color.fromARGB(255, 239, 239, 239),
+        elevation: 10,
+        shadowColor: Colors.grey,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+            bottomLeft: Radius.circular(15),
+            bottomRight: Radius.circular(15),
+          ),
+        ),
+        toolbarHeight: 60,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios),
+          iconSize: 24,
+          color: const Color.fromRGBO(181, 33, 226, 1),
+          onPressed: () {
+            setState(() {
+              today = DateTime(today.year, today.month - 1);
+            });
+          },
+        ),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            InkWell(
+              onTap: () async {
+                //ao clicar no cabeçalho, aparece o modal para selecionar o mês
+                final selectedDate = await showYearMonthPicker(
+                  context: context,
+                  initialDate: today,
+                );
+                if (selectedDate != null) {
+                  setState(() {
+                    today = selectedDate;
+                  });
+                }
+              },
+              child: Text(
+                '${getMonthName(today.month)} ${today.year}', // Nome do mês e ano
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromRGBO(181, 33, 226, 1),
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            IconButton(
+              icon: const Icon(Icons.today_rounded),
+              iconSize: 24,
+              color: const Color.fromRGBO(181, 33, 226, 1),
+              onPressed: () {
+                setState(() {
+                  today = DateTime.now(); // Volta para o dia atual
+                });
+              },
+            ),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.today),
-            iconSize: 40,
-            color: const Color.fromARGB(255, 236, 209, 241),
+            icon: const Icon(Icons.arrow_forward_ios),
+            iconSize: 24,
+            color: const Color.fromRGBO(181, 33, 226, 1),
             onPressed: () {
               setState(() {
-                today = DateTime.now(); // Volta para o dia atual
+                today = DateTime(today.year, today.month + 1);
               });
             },
           ),
         ],
       ),
       body: content(),
-      bottomNavigationBar: BottomNavigationBar(
-        iconSize: 40,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          switch (index) {
-            case 0: //botão "Home"
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const PaginaInicial()),
-              );
-              break;
-            case 1: //botão "Calendario"
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const AgendaPage()),
-              );
-              break;
-            case 2: //botão "Perfil"
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const PerfilPage()),
-              );
-              break;
-          }
-        },
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
-      ),
     );
   }
 
   Widget content() {
+    List<Map<String, dynamic>> atividadesDiaSelecionado =
+        atividadesDoDia(today);
+
     return Column(
       children: [
         // Text("teste"),
         Container(
+          margin: const EdgeInsets.only(top: 20),
           child: TableCalendar(
             locale: "pt_BR",
             rowHeight: 60,
-            headerStyle: const HeaderStyle(
-              formatButtonVisible: false,
-              titleCentered: true,
-            ),
+            headerVisible: false,
             availableGestures: AvailableGestures.all,
             onDaySelected: _onDaySelected,
             selectedDayPredicate: (day) => isSameDay(day, today),
             focusedDay: today,
             firstDay: DateTime.utc(2010, 1, 1),
             lastDay: DateTime.utc(2050, 12, 31),
+            onPageChanged: (focusedDay) {
+              setState(() {
+                today = DateTime(
+                  focusedDay.year,
+                  focusedDay.month,
+                );
+              });
+            },
             calendarBuilders: CalendarBuilders(
               //estilo do dia com atividade
               defaultBuilder: (context, day, focusedDay) {
                 bool hasActivity = isActivityDay(day);
                 return Container(
-                  decoration: BoxDecoration(
-                    color: hasActivity
-                        ? const Color.fromARGB(218, 76, 175, 79)
-                        : null, // Cor do dia com atividade
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '${day.day}',
-                      style: TextStyle(
-                        color: hasActivity ? Colors.white : Colors.black,
+                  padding: const EdgeInsets.all(6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        '${day.day}',
+                        style:
+                            const TextStyle(fontSize: 16, color: Colors.black),
                       ),
-                    ),
-                  ),
-                );
-              },
-              headerTitleBuilder: (context, day) {
-                String monthName = getMonthName(day.month);
-                return GestureDetector(
-                  onTap: () async {
-                    //ao clicar no cabeçalho vai aparecer o model para selecionar o mes
-                    final selectedDate = await showYearMonthPicker(
-                      context: context,
-                      initialDate: today,
-                    );
-                    if (selectedDate != null) {
-                      setState(() {
-                        today = selectedDate;
-                      });
-                    }
-                  },
-                  child: Center(
-                    child: Text(
-                      '$monthName ${day.year}',
-                      style: const TextStyle(
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                      if (hasActivity) ...[
+                        const SizedBox(height: 4),
+                        const Icon(
+                          Icons.star,
+                          size: 12,
+                          color: Color.fromRGBO(181, 33, 226, 1),
+                        ),
+                      ],
+                    ],
                   ),
                 );
               },
             ),
           ),
+        ),
+        Text(
+          'Atividades do dia ${today.day}',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        Expanded(
+          child: atividadesDiaSelecionado.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Nenhuma atividade cadastrada',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: atividadesDiaSelecionado.length,
+                  itemBuilder: (context, index) {
+                    final atividade = atividadesDiaSelecionado[index];
+                    return ListTile(
+                      leading: const Icon(Icons.add_task, color: Colors.green),
+                      title: Text(
+                        atividade['titulo'],
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '${atividade['descricao']}\nData final: ${atividade['data']}',
+                      ),
+                      isThreeLine: true,
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          // Redireciona para a tela de edição
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => editar_atividade(atividade: atividade),
+                          //   ),
+                          // );
+                        },
+                      ),
+                    );
+                  },
+                ),
         ),
       ],
     );
@@ -162,8 +245,18 @@ class _AgendaPageState extends State<AgendaPage> {
 
   String getMonthName(int month) {
     const monthNames = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro'
     ];
     return monthNames[month - 1];
   }
@@ -213,7 +306,8 @@ class _AgendaPageState extends State<AgendaPage> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.0),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10.0, vertical: 8.0),
                       ),
                       onPressed: () {
                         selectedDate = DateTime(selectedYear, index + 1, 1);
