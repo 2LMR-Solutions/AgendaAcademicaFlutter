@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'adicionar_atividade.dart';
 import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
@@ -16,6 +17,7 @@ class PaginaInicial extends StatefulWidget {
 
 class _PaginaInicialState extends State<PaginaInicial> {
   late String nome = 'Usuário';
+  String? fotoPerfil;
   List<Map<String, dynamic>> atividades = [];
 
   @override
@@ -23,6 +25,15 @@ class _PaginaInicialState extends State<PaginaInicial> {
     super.initState();
     _loadUserName();
     _carregarAtividades();
+    _carregarDadosUsuario();
+  }
+
+  Future<void> _carregarDadosUsuario() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      nome = prefs.getString('user_name') ?? "Usuário";
+      fotoPerfil = prefs.getString('foto_perfil');
+    });
   }
 
   Future<void> _loadUserName() async {
@@ -219,16 +230,20 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   ),
                 ],
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.account_circle,
-                  color: Colors.white,
-                  size: 70,
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(context, '/perfil'); // Navegar para a página de perfil
+                },
+                child: CircleAvatar(
+                  radius: 35, // Ajuste do tamanho
+                  backgroundImage: fotoPerfil != null
+                      ? FileImage(File(fotoPerfil!)) as ImageProvider
+                      : const AssetImage('lib/assets/images/default_avatar.png'),
                 ),
-                onPressed: () {},
               ),
             ],
           ),
+
           leading: Container(width: 50),
         ),
         body: SingleChildScrollView(
