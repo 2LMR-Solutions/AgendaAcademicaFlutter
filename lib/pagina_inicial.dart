@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'calendario.dart';
-import 'perfil.dart';
 import 'adicionar_atividade.dart';
 import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
@@ -251,12 +249,25 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   ),
                 ),
               ),
-              ConstrainedBox(
+
+              // Verifica se a lista de atividades está vazia
+              atividades.isEmpty
+                  ? const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Não há atividade registrada',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey,
+                  ),
+                ),
+              )
+                  : ConstrainedBox(
                 constraints:
-                    const BoxConstraints(maxHeight: 220, minHeight: 56.0),
+                const BoxConstraints(maxHeight: 220, minHeight: 56.0),
                 child: ListView.builder(
-                  shrinkWrap:
-                      true,
+                  shrinkWrap: true,
                   itemCount: atividades.length,
                   itemBuilder: (context, index) {
                     final atividade = atividades[index];
@@ -278,6 +289,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   },
                 ),
               ),
+
               const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32.0),
@@ -316,14 +328,14 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       mainAxisAlignment: atividades.length == 1
                           ? MainAxisAlignment.center
                           : MainAxisAlignment
-                              .spaceEvenly, // Centralizar se houver 1 gráfico
+                          .spaceEvenly, // Centralizar se houver 1 gráfico
                       children: List.generate(
                         2, // Gerar até 2 gráficos
-                        (index) {
+                            (index) {
                           if (index < atividades.length) {
                             final atividade = atividades[index];
                             final porcentagem =
-                                calcularPorcentagemConclusao(atividade);
+                            calcularPorcentagemConclusao(atividade);
                             return CircularPercentIndicator(
                               radius: 60.0,
                               lineWidth: 15.0,
@@ -334,7 +346,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               progressColor:
-                                  index == 0 ? Color.fromRGBO(97, 201, 168, 1) : Color.fromRGBO(26, 200, 237, 1),
+                              index == 0 ? Color.fromRGBO(97, 201, 168, 1) : Color.fromRGBO(26, 200, 237, 1),
                               footer: Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
@@ -393,6 +405,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
             ],
           ),
         ),
+
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(
@@ -411,48 +424,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
             );
           },
           child: const Icon(Icons.add),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          iconSize: 40,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const PaginaInicial()),
-                );
-                break;
-              case 1:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AgendaPage()),
-                );
-                break;
-              case 2:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PerfilPage()),
-                );
-                break;
-            }
-          },
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: '',
-            ),
-          ],
         ),
       ),
     );
