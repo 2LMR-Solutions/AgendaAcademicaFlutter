@@ -3,6 +3,7 @@ import 'package:flutter/services.dart'; // Necessário para usar inputFormatters
 import 'package:shared_preferences/shared_preferences.dart';
 // import 'pagina_inicial.dart'; // Importe a página inicial
 
+
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
 
@@ -27,7 +28,8 @@ class LetrasInputFormatter extends TextInputFormatter {
 
 class _PaginaLoginState extends State<PaginaLogin> {
   final _formKey = GlobalKey<FormState>(); // Chave para o formulário
-  final TextEditingController _nomeController = TextEditingController(); // Controlador para o campo de texto
+  final TextEditingController _nomeController =
+      TextEditingController(); // Controlador para o campo de texto
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
       body: Container(
         decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('lib/assets/images/login.jpg'), // Caminho da imagem
+            image:
+                AssetImage('lib/assets/images/login.jpg'), // Caminho da imagem
             fit: BoxFit.cover, // Faz a imagem preencher todo o fundo
           ),
         ),
@@ -54,7 +57,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 20), // Espaçamento entre o texto e o campo
+                const SizedBox(
+                    height: 20), // Espaçamento entre o texto e o campo
 
                 // Campo de texto
                 Padding(
@@ -72,14 +76,15 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       ),
                       // Estilo da mensagem de erro
                       errorStyle: const TextStyle(
-                        color: Colors.yellow, // Altere a cor aqui
-                        fontWeight: FontWeight.bold, // Personalize o estilo
+                        color: Colors.yellow,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     style: const TextStyle(color: Colors.white),
                     inputFormatters: [
-                      LengthLimitingTextInputFormatter(15), // Limita a entrada a 15 caracteres
-                      LetrasInputFormatter(), // Nosso formatter personalizado
+                      LengthLimitingTextInputFormatter(
+                          15), // Limita a entrada a 15 caracteres
+                      LetrasInputFormatter(),
                     ],
                     // Validação do campo
                     validator: (value) {
@@ -91,8 +96,8 @@ class _PaginaLoginState extends State<PaginaLogin> {
                   ),
                 ),
 
-
-                const SizedBox(height: 20), // Espaçamento entre o campo e o botão
+                const SizedBox(
+                    height: 20), // Espaçamento entre o campo e o botão
 
                 // Botão "Entrar"
                 ElevatedButton(
@@ -103,6 +108,7 @@ class _PaginaLoginState extends State<PaginaLogin> {
                       await prefs.setString('user_name', _nomeController.text);
                       // Navegar para a página inicial usando uma rota nomeada
                       Navigator.pushReplacementNamed(context, '/home');
+
                     }
                   },
                   style: ElevatedButton.styleFrom(

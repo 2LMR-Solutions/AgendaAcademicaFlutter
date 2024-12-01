@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'adicionar_atividade.dart';
 import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
+import 'package:percent_indicator/percent_indicator.dart';
+import 'pagina_graficos.dart';
 
 class PaginaInicial extends StatefulWidget {
   const PaginaInicial({super.key});
@@ -32,7 +34,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
 
   Future<void> _salvarAtividades() async {
     final prefs = await SharedPreferences.getInstance();
-    final atividadesJson = atividades.map((atividade) => jsonEncode(atividade)).toList();
+    final atividadesJson =
+        atividades.map((atividade) => jsonEncode(atividade)).toList();
     await prefs.setStringList('atividades', atividadesJson);
   }
 
@@ -40,7 +43,10 @@ class _PaginaInicialState extends State<PaginaInicial> {
     final prefs = await SharedPreferences.getInstance();
     final atividadesJson = prefs.getStringList('atividades') ?? [];
     setState(() {
-      atividades = atividadesJson.map((json) => jsonDecode(json)).toList().cast<Map<String, dynamic>>();
+      atividades = atividadesJson
+          .map((json) => jsonDecode(json))
+          .toList()
+          .cast<Map<String, dynamic>>();
     });
   }
 
@@ -57,7 +63,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
     });
   }
 
-  void mostrarDetalhesAtividade(BuildContext context, Map<String, dynamic> atividade) {
+  void mostrarDetalhesAtividade(
+      BuildContext context, Map<String, dynamic> atividade) {
     final subtarefas = List<Map<String, dynamic>>.from(atividade['subtarefas']);
     showDialog(
       context: context,
@@ -70,13 +77,16 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Descrição:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Descrição:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(atividade['descricao']),
                     const SizedBox(height: 10),
-                    const Text('Data final:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Data final:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(atividade['data']),
                     const Divider(),
-                    const Text('Subtarefas:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Subtarefas:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     ...subtarefas.asMap().entries.map((entry) {
                       final index = entry.key;
                       final subtarefa = entry.value;
@@ -89,7 +99,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
                             });
                             setState(() {
                               atividade['subtarefas'] = subtarefas;
-                              final atividadeIndex = atividades.indexOf(atividade);
+                              final atividadeIndex =
+                                  atividades.indexOf(atividade);
                               if (atividadeIndex != -1) {
                                 atividades[atividadeIndex] = atividade;
                               }
@@ -134,7 +145,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       }
                     });
                   },
-                  child: const Text('Editar', style: TextStyle(color: Colors.blue)),
+                  child: const Text('Editar',
+                      style: TextStyle(color: Colors.blue)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -146,6 +158,17 @@ class _PaginaInicialState extends State<PaginaInicial> {
         );
       },
     );
+  }
+
+  double calcularPorcentagemConclusao(Map<String, dynamic> atividade) {
+    final subtarefas =
+        List<Map<String, dynamic>>.from(atividade['subtarefas'] ?? []);
+    if (subtarefas.isEmpty) return 0.0;
+
+    final totalSubtarefas = subtarefas.length;
+    final concluidas = subtarefas.where((sub) => sub['marcada'] == true).length;
+
+    return concluidas / totalSubtarefas;
   }
 
   Future<bool> _onWillPop() async {
@@ -208,8 +231,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
           ),
           leading: Container(width: 50),
         ),
-        body: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 220, minHeight: 56.0),
+        body: SingleChildScrollView(
           child: Column(
             children: [
               const Padding(
@@ -227,44 +249,163 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   ),
                 ),
               ),
-              Expanded(
-                child: atividades.isEmpty
-                    ? const Center(
+
+              // Verifica se a lista de atividades está vazia
+              atividades.isEmpty
+                  ? const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'Não há atividade registrada',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey,
+                  ),
+                ),
+              )
+                  : ConstrainedBox(
+                constraints:
+                const BoxConstraints(maxHeight: 220, minHeight: 56.0),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: atividades.length,
+                  itemBuilder: (context, index) {
+                    final atividade = atividades[index];
+                    return ListTile(
+                      leading: const Icon(Icons.add_task, color: Colors.green),
+                      title: Text(
+                        atividade['titulo'],
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '${atividade['descricao']}\nData final: ${atividade['data']}',
+                      ),
+                      isThreeLine: true,
+                      trailing: const Icon(Icons.more_horiz),
+                      onTap: () {
+                        mostrarDetalhesAtividade(context, atividade);
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: const Divider(
+                  height: 1,
+                  color: Color(0xFFb521e2),
+                  thickness: 1,
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // Título da seção "Gráficos de Progresso"
+              const Padding(
+                padding: EdgeInsets.only(left: 16.0), // Alinhamento à esquerda
+                child: Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    'Nenhuma atividade cadastrada',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w100),
+                    'Gráficos de Progresso',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: 'Roboto',
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
                   ),
-                )
-                    : Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 6.0,
-                  radius: const Radius.circular(10),
-                  child: ListView.builder(
-                    itemCount: atividades.length,
-                    itemBuilder: (context, index) {
-                      final atividade = atividades[index];
-                      return ListTile(
-                        leading: const Icon(Icons.add_task, color: Colors.green),
-                        title: Text(
-                          atividade['titulo'],
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          '${atividade['descricao']}\nData final: ${atividade['data']}',
-                        ),
-                        isThreeLine: true,
-                        trailing: const Icon(Icons.more_horiz),
-                        onTap: () {
-                          mostrarDetalhesAtividade(context, atividade);
+                ),
+              ),
+
+              // Gráficos de Progresso
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 15), // Espaço antes dos gráficos
+                    Row(
+                      mainAxisAlignment: atividades.length == 1
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment
+                          .spaceEvenly, // Centralizar se houver 1 gráfico
+                      children: List.generate(
+                        2, // Gerar até 2 gráficos
+                            (index) {
+                          if (index < atividades.length) {
+                            final atividade = atividades[index];
+                            final porcentagem =
+                            calcularPorcentagemConclusao(atividade);
+                            return CircularPercentIndicator(
+                              radius: 60.0,
+                              lineWidth: 15.0,
+                              percent: porcentagem,
+                              center: Text(
+                                "${(porcentagem * 100).toStringAsFixed(0)}%",
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              progressColor:
+                              index == 0 ? Color.fromRGBO(97, 201, 168, 1) : Color.fromRGBO(26, 200, 237, 1),
+                              footer: Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  atividade['titulo'],
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            );
+                          } else {
+                            return const SizedBox
+                                .shrink(); // Evitar espaço vazio visível
+                          }
                         },
-                      );
-                    },
-                  ),
+                      ),
+                    ),
+                    const SizedBox(height: 10), // Espaço entre gráficos e botão
+                    Padding(
+                      padding: const EdgeInsets.only(
+                          left: 32.0), // Adicionando espaçamento à esquerda
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TelaGraficosTarefas(atividades: atividades), // Passar a lista de atividades
+                              ),
+                            );
+                          },
+
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.lightBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 25, vertical: 7),
+                          ),
+                          child: const Text(
+                            "Ver mais",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
         ),
+
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             Navigator.push(

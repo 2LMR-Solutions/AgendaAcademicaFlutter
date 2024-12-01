@@ -28,7 +28,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
     controladorData.text = widget.atividade['data'];
 
     for (var subtarefa in widget.atividade['subtarefas']) {
-      controladoresSubtarefas.add(TextEditingController(text: subtarefa['nome']));
+      controladoresSubtarefas
+          .add(TextEditingController(text: subtarefa['nome']));
       subtarefasMarcadas.add(subtarefa['marcada']);
     }
   }
@@ -59,10 +60,24 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
     final titulo = controladorTitulo.text.trim();
     final data = controladorData.text.trim();
 
-    if (titulo.isEmpty || data.isEmpty) {
+    // Verifica se há subtarefas vazias ou se não há subtarefas
+    bool nenhumaSubtarefa = controladoresSubtarefas.isEmpty;
+    bool subtarefaInvalida = controladoresSubtarefas
+        .any((controlador) => controlador.text.trim().isEmpty);
+
+    if (titulo.isEmpty ||
+        data.isEmpty ||
+        nenhumaSubtarefa ||
+        subtarefaInvalida) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Título e data são obrigatórios!'),
+        SnackBar(
+          content: Text(
+            nenhumaSubtarefa
+                ? 'Você deve adicionar pelo menos uma subtarefa!'
+                : subtarefaInvalida
+                    ? 'Todas as subtarefas devem ser preenchidas!'
+                    : 'Título e data são obrigatórios!',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -82,6 +97,11 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
     };
 
     Navigator.pop(context, atividadeEditada); // Retorna os dados editados
+
+    // Exibe o SnackBar de sucesso após salvar a atividade
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Atividade salva com sucesso!')),
+    );
   }
 
 // Função para excluir a atividade
@@ -91,7 +111,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
       builder: (BuildContext contexto) {
         return AlertDialog(
           title: const Text('Confirmar Exclusão'),
-          content: const Text('Tem certeza de que deseja excluir esta atividade?'),
+          content:
+              const Text('Tem certeza de que deseja excluir esta atividade?'),
           actions: [
             TextButton(
               onPressed: () {
@@ -102,7 +123,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
             TextButton(
               onPressed: () {
                 Navigator.of(contexto).pop();
-                Navigator.pop(context, 'excluida'); // Retorna um sinal de exclusão
+                Navigator.pop(
+                    context, 'excluida'); // Retorna um sinal de exclusão
               },
               child: const Text('Excluir'),
             ),
@@ -111,6 +133,7 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
       },
     );
   }
+
   void _adicionarSubtarefa() {
     TextEditingController novaSubtarefaController = TextEditingController();
 
@@ -120,8 +143,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
         return AlertDialog(
           title: const Text(
             "Nova subtarefa",
-            style: TextStyle(
-              fontSize: 20),),
+            style: TextStyle(fontSize: 20),
+          ),
           content: TextField(
             controller: novaSubtarefaController,
             decoration: const InputDecoration(
@@ -134,12 +157,15 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
               onPressed: () {
                 Navigator.pop(context); // Fecha o diálogo sem salvar
               },
-              child: const Text("Cancelar",style: TextStyle(
-                fontSize: 15,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.normal,
-                color: Colors.red,
-              ), ),
+              child: const Text(
+                "Cancelar",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.normal,
+                  color: Colors.red,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -149,29 +175,21 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                 });
                 Navigator.pop(context); // Fecha o diálogo após salvar
               },
-              child: const Text("Salvar", style: TextStyle(
-                fontSize: 15,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.normal,
-                color: Colors.green,
-              ),),
+              child: const Text(
+                "Salvar",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.normal,
+                  color: Colors.green,
+                ),
+              ),
             ),
-            /*const Text(
-          "Editar Atividade",
-          style: TextStyle(
-            fontSize: 20,
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),*/
           ],
         );
       },
     );
   }
-
-
 
   @override
   Widget build(BuildContext contexto) {
@@ -245,7 +263,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
-                    height: 200, // Define o espaço limitado para a lista de subtarefas
+                    height:
+                        200, // Define o espaço limitado para a lista de subtarefas
                     child: Scrollbar(
                       thumbVisibility: true, // Mostra o indicador de scroll
                       child: ListView.builder(
@@ -279,7 +298,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                                         subtarefasMarcadas.removeAt(i);
                                       });
                                     },
-                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
                                   ),
                                 ],
                               ),
@@ -317,11 +337,11 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                     child: TextField(
                       controller: controladorData,
                       readOnly: true,
-                      style: const TextStyle(fontFamily: 'Roboto', fontSize: 20),
+                      style:
+                          const TextStyle(fontFamily: 'Roboto', fontSize: 20),
                       decoration: InputDecoration(
                         hintText: "Data de Entrega",
-                        hintStyle:
-                        const TextStyle(color: Color(0xFF3e3e3e)),
+                        hintStyle: const TextStyle(color: Color(0xFF3e3e3e)),
                         border: const OutlineInputBorder(
                             borderSide: BorderSide(color: Color(0xFFb521e2))),
                         prefixIcon: IconButton(
@@ -341,8 +361,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                   ElevatedButton(
                     onPressed: salvarEdicao,
                     style: ElevatedButton.styleFrom(
-                      padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 20),
                       elevation: 2,
                       backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
@@ -356,12 +376,13 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                     onPressed: () {
                       Navigator.pushReplacement(
                         context,
-                        MaterialPageRoute(builder: (context) => const PaginaInicial()),
+                        MaterialPageRoute(
+                            builder: (context) => const PaginaInicial()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      padding:
-                      const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 10, horizontal: 20),
                       elevation: 2,
                       backgroundColor: Colors.lightBlueAccent,
                       foregroundColor: Colors.white,
@@ -379,7 +400,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                 child: ElevatedButton(
                   onPressed: excluirAtividade, // Botão de exclusão
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 10, horizontal: 20),
                     elevation: 2,
                     backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,
@@ -388,7 +410,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                     ),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min, // Certifique-se de que o botão tenha o tamanho mínimo necessário
+                    mainAxisSize: MainAxisSize
+                        .min,
                     children: const [
                       Text("Excluir Atividade"),
                       SizedBox(width: 8), // Espaço entre o texto e o ícone
@@ -400,7 +423,6 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                   ),
                 ),
               )
-
             ],
           ),
         ),
