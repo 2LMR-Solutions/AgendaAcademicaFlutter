@@ -61,6 +61,7 @@ class _TelaAtividadeState extends State<TelaAtividade> {
     String descricao = controladorDescricao.text.trim();
     String data = dataFormatada.trim();
 
+    // Verificar se o título e a data foram preenchidos
     if (titulo.isEmpty || data.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -71,15 +72,26 @@ class _TelaAtividadeState extends State<TelaAtividade> {
       return;
     }
 
-
+    // Verificar se há subtarefas válidas
     List<Map<String, dynamic>> subtarefas = [];
     for (int i = 0; i < controladoresSubtarefas.length; i++) {
-      if (controladoresSubtarefas[i].text.isNotEmpty) {
+      String subtarefaTexto = controladoresSubtarefas[i].text.trim();
+      if (subtarefaTexto.isNotEmpty) {
         subtarefas.add({
-          'nome': controladoresSubtarefas[i].text,
+          'nome': subtarefaTexto,
           'marcada': subtarefasMarcadas[i],
         });
       }
+    }
+
+    if (subtarefas.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Adicione pelo menos uma subtarefa.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
     }
 
     // Dados da nova atividade
@@ -89,6 +101,7 @@ class _TelaAtividadeState extends State<TelaAtividade> {
       'data': data,
       'subtarefas': subtarefas,
     };
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Atividade salva com sucesso!')),
     );
@@ -96,10 +109,11 @@ class _TelaAtividadeState extends State<TelaAtividade> {
     // Redirecionar para a tela inicial após o feedback
     Future.delayed(const Duration(seconds: 1), () {
       Navigator.pop(context); // Retorna à tela inicial
-      // Adiciona à lista e retorna para a página inicial
       widget.adicionarAtividade(novaAtividade);
     });
   }
+
+
   void _adicionarSubtarefa() {
     TextEditingController novaSubtarefaController = TextEditingController();
 
@@ -109,8 +123,8 @@ class _TelaAtividadeState extends State<TelaAtividade> {
         return AlertDialog(
           title: const Text(
             "Nova subtarefa",
-            style: TextStyle(
-                fontSize: 20),),
+            style: TextStyle(fontSize: 20),
+          ),
           content: TextField(
             controller: novaSubtarefaController,
             decoration: const InputDecoration(
@@ -123,12 +137,15 @@ class _TelaAtividadeState extends State<TelaAtividade> {
               onPressed: () {
                 Navigator.pop(context); // Fecha o diálogo sem salvar
               },
-              child: const Text("Cancelar",style: TextStyle(
-                fontSize: 15,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.normal,
-                color: Colors.red,
-              ), ),
+              child: const Text(
+                "Cancelar",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.normal,
+                  color: Colors.red,
+                ),
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -138,12 +155,15 @@ class _TelaAtividadeState extends State<TelaAtividade> {
                 });
                 Navigator.pop(context); // Fecha o diálogo após salvar
               },
-              child: const Text("Salvar", style: TextStyle(
-                fontSize: 15,
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.normal,
-                color: Colors.green,
-              ),),
+              child: const Text(
+                "Salvar",
+                style: TextStyle(
+                  fontSize: 15,
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.normal,
+                  color: Colors.green,
+                ),
+              ),
             ),
             /*const Text(
           "Editar Atividade",
@@ -255,7 +275,8 @@ class _TelaAtividadeState extends State<TelaAtividade> {
                   ),
                   const SizedBox(height: 10),
                   SizedBox(
-                    height: 200, // Define o espaço limitado para a lista de subtarefas
+                    height:
+                        200, // Define o espaço limitado para a lista de subtarefas
                     child: Scrollbar(
                       thumbVisibility: true, // Mostra o indicador de scroll
                       child: ListView.builder(
@@ -289,7 +310,8 @@ class _TelaAtividadeState extends State<TelaAtividade> {
                                         subtarefasMarcadas.removeAt(i);
                                       });
                                     },
-                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                    icon: const Icon(Icons.delete,
+                                        color: Colors.red),
                                   ),
                                 ],
                               ),
@@ -326,11 +348,11 @@ class _TelaAtividadeState extends State<TelaAtividade> {
                     child: TextField(
                       controller: controladorData,
                       readOnly: true,
-                      style: const TextStyle(fontFamily: 'Roboto', fontSize: 20),
+                      style:
+                          const TextStyle(fontFamily: 'Roboto', fontSize: 20),
                       decoration: InputDecoration(
                         hintText: "Data de entrega",
-                        hintStyle:
-                        const TextStyle(color: Color(0xFF3e3e3e)),
+                        hintStyle: const TextStyle(color: Color(0xFF3e3e3e)),
                         border: const OutlineInputBorder(
                             borderSide: BorderSide(color: Color(0xFFb521e2))),
                         prefixIcon: IconButton(

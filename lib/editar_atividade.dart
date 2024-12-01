@@ -59,10 +59,20 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
     final titulo = controladorTitulo.text.trim();
     final data = controladorData.text.trim();
 
-    if (titulo.isEmpty || data.isEmpty) {
+    // Verifica se há subtarefas vazias ou se não há subtarefas
+    bool nenhumaSubtarefa = controladoresSubtarefas.isEmpty;
+    bool subtarefaInvalida = controladoresSubtarefas.any((controlador) => controlador.text.trim().isEmpty);
+
+    if (titulo.isEmpty || data.isEmpty || nenhumaSubtarefa || subtarefaInvalida) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Título e data são obrigatórios!'),
+        SnackBar(
+          content: Text(
+            nenhumaSubtarefa
+                ? 'Você deve adicionar pelo menos uma subtarefa!'
+                : subtarefaInvalida
+                ? 'Todas as subtarefas devem ser preenchidas!'
+                : 'Título e data são obrigatórios!',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -83,6 +93,8 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
 
     Navigator.pop(context, atividadeEditada); // Retorna os dados editados
   }
+
+
 
 // Função para excluir a atividade
   void excluirAtividade() {
