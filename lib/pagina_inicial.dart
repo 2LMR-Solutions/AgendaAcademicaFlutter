@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert'; // Para converter para JSON
+import 'dart:convert';
 import 'calendario.dart';
 import 'perfil.dart';
 import 'adicionar_atividade.dart';
@@ -15,17 +15,16 @@ class PaginaInicial extends StatefulWidget {
 }
 
 class _PaginaInicialState extends State<PaginaInicial> {
-  late String nome = 'Usuário'; // Nome padrão caso não seja encontrado nos SharedPreferences
+  late String nome = 'Usuário';
   List<Map<String, dynamic>> atividades = [];
 
   @override
   void initState() {
     super.initState();
-    _loadUserName(); // Carregar o nome do usuário ao inicializar
-    _carregarAtividades(); // Carregar as atividades salvas
+    _loadUserName();
+    _carregarAtividades();
   }
 
-  // Função para carregar o nome do SharedPreferences
   Future<void> _loadUserName() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -33,83 +32,71 @@ class _PaginaInicialState extends State<PaginaInicial> {
     });
   }
 
-  // Função para salvar atividades no SharedPreferences
   Future<void> _salvarAtividades() async {
     final prefs = await SharedPreferences.getInstance();
     final atividadesJson = atividades.map((atividade) => jsonEncode(atividade)).toList();
     await prefs.setStringList('atividades', atividadesJson);
   }
 
-  // Função para carregar atividades do SharedPreferences
   Future<void> _carregarAtividades() async {
     final prefs = await SharedPreferences.getInstance();
     final atividadesJson = prefs.getStringList('atividades') ?? [];
     setState(() {
-      atividades = atividadesJson.map((json) => jsonDecode(json)).toList().cast<Map<String, dynamic>>();;
+      atividades = atividadesJson.map((json) => jsonDecode(json)).toList().cast<Map<String, dynamic>>();
     });
   }
 
-  // Função para ordenar as atividades pela data
   void ordenarAtividades() {
     atividades.sort((a, b) {
-      DateTime dataA = DateFormat('dd/MM/yyyy').parse(a['data']);
-      DateTime dataB = DateFormat('dd/MM/yyyy').parse(b['data']);
-      return dataA.compareTo(dataB);
+      try {
+        DateTime dataA = DateFormat('dd/MM/yyyy').parse(a['data']);
+        DateTime dataB = DateFormat('dd/MM/yyyy').parse(b['data']);
+        return dataA.compareTo(dataB);
+      } catch (e) {
+        debugPrint('Erro ao ordenar atividades: $e');
+        return 0;
+      }
     });
   }
 
   void mostrarDetalhesAtividade(BuildContext context, Map<String, dynamic> atividade) {
+    final subtarefas = List<Map<String, dynamic>>.from(atividade['subtarefas']);
     showDialog(
       context: context,
       builder: (context) {
-        // Converte subtarefas para o tipo correto
-        final subtarefas = List<Map<String, dynamic>>.from(atividade['subtarefas']);
-
-        return StatefulBuilder( // Usa StatefulBuilder para gerenciar estado no diálogo
-          builder: (context, setState) {
+        return StatefulBuilder(
+          builder: (context, setStateLocal) {
             return AlertDialog(
               title: Text(atividade['titulo']),
               content: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Descrição:',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    const Text('Descrição:', style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(atividade['descricao']),
                     const SizedBox(height: 10),
-                    Text(
-                      'Data final:',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    const Text('Data final:', style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(atividade['data']),
                     const Divider(),
-                    Text(
-                      'Subtarefas:',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                    const Text('Subtarefas:', style: TextStyle(fontWeight: FontWeight.bold)),
                     ...subtarefas.asMap().entries.map((entry) {
                       final index = entry.key;
                       final subtarefa = entry.value;
-
                       return ListTile(
                         leading: Checkbox(
                           value: subtarefa['marcada'],
                           onChanged: (bool? novaMarcacao) {
-                            setState(() {
+                            setStateLocal(() {
                               subtarefas[index]['marcada'] = novaMarcacao!;
-                              // Atualiza a atividade original
-                              atividade['subtarefas'] = subtarefas;
                             });
-                            // Atualiza a lista global de atividades e salva
-                            final atividadeIndex = atividades.indexOf(atividade);
-                            if (atividadeIndex != -1) {
-                              setState(() {
+                            setState(() {
+                              atividade['subtarefas'] = subtarefas;
+                              final atividadeIndex = atividades.indexOf(atividade);
+                              if (atividadeIndex != -1) {
                                 atividades[atividadeIndex] = atividade;
-                              });
+                              }
                               _salvarAtividades();
-                            }
+                            });
                           },
                           activeColor: const Color.fromRGBO(181, 33, 226, 1),
                         ),
@@ -122,24 +109,22 @@ class _PaginaInicialState extends State<PaginaInicial> {
               actions: [
                 TextButton(
                   onPressed: () {
-                    Navigator.of(context).pop(); // Fecha o diálogo atual
+                    Navigator.of(context).pop();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => TelaEditarAtividade(
-                          atividade: atividade, // Passa os dados para edição
+                          atividade: atividade,
                         ),
                       ),
                     ).then((atividadeEditada) {
                       if (atividadeEditada != null) {
                         if (atividadeEditada == 'excluida') {
-                          // Remove a atividade se ela foi excluída
                           setState(() {
                             atividades.remove(atividade);
                             _salvarAtividades();
                           });
                         } else {
-                          // Atualiza a atividade editada na lista
                           setState(() {
                             final index = atividades.indexOf(atividade);
                             if (index != -1) {
@@ -154,9 +139,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   child: const Text('Editar', style: TextStyle(color: Colors.blue)),
                 ),
                 TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
+                  onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Fechar'),
                 ),
               ],
@@ -167,22 +150,16 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
-
-
-
-
-  // Função para bloquear o botão de voltar (pop)
   Future<bool> _onWillPop() async {
-    // Retorna falso para bloquear a ação de voltar
     return false;
   }
 
   @override
   Widget build(BuildContext context) {
-    ordenarAtividades(); // Ordena as atividades sempre que o widget for reconstruído
+    ordenarAtividades();
 
     return WillPopScope(
-      onWillPop: _onWillPop, // Bloqueia a navegação para a página anterior
+      onWillPop: _onWillPop,
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: const Color.fromRGBO(181, 33, 226, 1),
@@ -227,13 +204,11 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   color: Colors.white,
                   size: 70,
                 ),
-                onPressed: () {
-                  // Ação do botão (opcional)
-                },
+                onPressed: () {},
               ),
             ],
           ),
-          leading: Container(width: 50), // Mantém o espaço, mas remove a seta
+          leading: Container(width: 50),
         ),
         body: ConstrainedBox(
           constraints: const BoxConstraints(maxHeight: 220, minHeight: 56.0),
@@ -263,9 +238,9 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   ),
                 )
                     : Scrollbar(
-                  thumbVisibility: true, // Mantém a barra de rolagem visível
-                  thickness: 6.0, // Define a largura da barra
-                  radius: const Radius.circular(10), // Bordas arredondadas na barra
+                  thumbVisibility: true,
+                  thickness: 6.0,
+                  radius: const Radius.circular(10),
                   child: ListView.builder(
                     itemCount: atividades.length,
                     itemBuilder: (context, index) {
@@ -288,8 +263,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                     },
                   ),
                 ),
-              )
-
+              ),
             ],
           ),
         ),
@@ -301,9 +275,9 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 builder: (context) => TelaAtividade(
                   adicionarAtividade: (atividade) {
                     setState(() {
-                      atividades.add(atividade); // Adiciona a nova atividade à lista
-                      ordenarAtividades(); // Reordena após adicionar
-                      _salvarAtividades(); // Salva no SharedPreferences
+                      atividades.add(atividade);
+                      ordenarAtividades();
+                      _salvarAtividades();
                     });
                   },
                 ),

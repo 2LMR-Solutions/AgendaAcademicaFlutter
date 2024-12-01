@@ -55,7 +55,7 @@ class _TelaAtividadeState extends State<TelaAtividade> {
     });
   }
 
- // Função para salvar atividade e redirecionar
+  // Função para salvar atividade e redirecionar
   void salvarAtividade() {
     String titulo = controladorTitulo.text.trim();
     String descricao = controladorDescricao.text.trim();
@@ -70,6 +70,7 @@ class _TelaAtividadeState extends State<TelaAtividade> {
       );
       return;
     }
+
 
     List<Map<String, dynamic>> subtarefas = [];
     for (int i = 0; i < controladoresSubtarefas.length; i++) {
@@ -99,7 +100,65 @@ class _TelaAtividadeState extends State<TelaAtividade> {
       widget.adicionarAtividade(novaAtividade);
     });
   }
+  void _adicionarSubtarefa() {
+    TextEditingController novaSubtarefaController = TextEditingController();
 
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text(
+            "Nova subtarefa",
+            style: TextStyle(
+                fontSize: 20),),
+          content: TextField(
+            controller: novaSubtarefaController,
+            decoration: const InputDecoration(
+              hintText: "Digite o nome da subtarefa",
+              hintStyle: TextStyle(color: Colors.grey),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Fecha o diálogo sem salvar
+              },
+              child: const Text("Cancelar",style: TextStyle(
+                fontSize: 15,
+                fontFamily: 'Roboto',
+                fontWeight: FontWeight.normal,
+                color: Colors.red,
+              ), ),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  controladoresSubtarefas.add(novaSubtarefaController);
+                  subtarefasMarcadas.add(false);
+                });
+                Navigator.pop(context); // Fecha o diálogo após salvar
+              },
+              child: const Text("Salvar", style: TextStyle(
+                fontSize: 15,
+                fontFamily: 'Roboto',
+                fontWeight: FontWeight.normal,
+                color: Colors.green,
+              ),),
+            ),
+            /*const Text(
+          "Editar Atividade",
+          style: TextStyle(
+            fontSize: 20,
+            fontFamily: 'Roboto',
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),*/
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -184,36 +243,81 @@ class _TelaAtividadeState extends State<TelaAtividade> {
               ),
               const SizedBox(height: 10),
               // Lista de subtarefas
-              for (int i = 0; i < controladoresSubtarefas.length; i++)
-                Row(
-                  children: [
-                    Checkbox(
-                      value: subtarefasMarcadas[i],
-                      onChanged: (bool? novoValor) {
-                        aoMudarCheckbox(i, novoValor);
-                      },
-                      activeColor: const Color(0xFFb521e2),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Subtarefas:",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: controladoresSubtarefas[i],
-                        style: const TextStyle(fontSize: 10),
-                        decoration: const InputDecoration(
-                          hintText: "--Exemplo Subtarefa--",
-                          hintStyle: TextStyle(color: Color(0xFFb521e2)),
-                          border: InputBorder.none,
-                        ),
-                        onChanged: (texto) {
-                          if (texto.isNotEmpty &&
-                              i == controladoresSubtarefas.length - 1) {
-                            adicionarSubtarefa();
-                          }
+                  ),
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    height: 200, // Define o espaço limitado para a lista de subtarefas
+                    child: Scrollbar(
+                      thumbVisibility: true, // Mostra o indicador de scroll
+                      child: ListView.builder(
+                        itemCount: controladoresSubtarefas.length,
+                        itemBuilder: (context, i) {
+                          return Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Checkbox(
+                                    value: subtarefasMarcadas[i],
+                                    onChanged: (bool? novoValor) {
+                                      aoMudarCheckbox(i, novoValor);
+                                    },
+                                    activeColor: const Color(0xFFb521e2),
+                                  ),
+                                  Expanded(
+                                    child: TextField(
+                                      controller: controladoresSubtarefas[i],
+                                      style: const TextStyle(fontSize: 12),
+                                      decoration: const InputDecoration(
+                                        hintText: "Digite a subtarefa",
+                                        border: OutlineInputBorder(),
+                                      ),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        controladoresSubtarefas.removeAt(i);
+                                        subtarefasMarcadas.removeAt(i);
+                                      });
+                                    },
+                                    icon: const Icon(Icons.delete, color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                              const Divider(), // Separador entre subtarefas
+                            ],
+                          );
                         },
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 10),
+                  Center(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        _adicionarSubtarefa();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFb521e2),
+                      ),
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text(
+                        "Adicionar Subtarefa",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               const Divider(color: Color(0xFFb521e2)),
               const SizedBox(height: 20),
               Row(
@@ -226,7 +330,7 @@ class _TelaAtividadeState extends State<TelaAtividade> {
                       decoration: InputDecoration(
                         hintText: "Data de entrega",
                         hintStyle:
-                            const TextStyle(color: Color(0xFF3e3e3e)),
+                        const TextStyle(color: Color(0xFF3e3e3e)),
                         border: const OutlineInputBorder(
                             borderSide: BorderSide(color: Color(0xFFb521e2))),
                         prefixIcon: IconButton(
