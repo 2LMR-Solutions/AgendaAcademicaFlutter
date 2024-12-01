@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'pagina_inicial.dart';
-import 'perfil.dart';
 
 class AgendaPage extends StatefulWidget {
   const AgendaPage({super.key});
@@ -140,47 +138,6 @@ class _AgendaPageState extends State<AgendaPage> {
         ],
       ),
       body: content(),
-      bottomNavigationBar: BottomNavigationBar(
-        iconSize: 40,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        onTap: (index) {
-          switch (index) {
-            case 0: //botão "Home"
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const PaginaInicial()),
-              );
-              break;
-            case 1: //botão "Calendario"
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const AgendaPage()),
-              );
-              break;
-            case 2: //botão "Perfil"
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const PerfilPage()),
-              );
-              break;
-          }
-        },
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
-      ),
     );
   }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Necessário para usar inputFormatters
 import 'package:shared_preferences/shared_preferences.dart';
-import 'pagina_inicial.dart'; // Importe a página inicial
+// import 'pagina_inicial.dart'; // Importe a página inicial
 
 class PaginaLogin extends StatefulWidget {
   const PaginaLogin({super.key});
@@ -97,24 +97,18 @@ class _PaginaLoginState extends State<PaginaLogin> {
                 // Botão "Entrar"
                 ElevatedButton(
                   onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                      // Navegar para a página inicial passando o nome como parâmetro
+                    if (_formKey.currentState!.validate()) {
                       // Salvar o nome no SharedPreferences
                       final prefs = await SharedPreferences.getInstance();
                       await prefs.setString('user_name', _nomeController.text);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PaginaInicial(), // Sem passar o nome
-                        ),
-                      );
+                      // Navegar para a página inicial usando uma rota nomeada
+                      Navigator.pushReplacementNamed(context, '/home');
                     }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.purple,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 40, vertical: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'calendario.dart';
-import 'perfil.dart';
 import 'adicionar_atividade.dart';
 import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
@@ -285,47 +283,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
             );
           },
           child: const Icon(Icons.add),
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          iconSize: 40,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          onTap: (index) {
-            switch (index) {
-              case 0:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PaginaInicial()),
-                );
-                break;
-              case 1:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AgendaPage()),
-                );
-                break;
-              case 2:
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const PerfilPage()),
-                );
-                break;
-            }
-          },
-          items: const <BottomNavigationBarItem>[
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month),
-              label: '',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: '',
-            ),
-          ],
         ),
       ),
     );
