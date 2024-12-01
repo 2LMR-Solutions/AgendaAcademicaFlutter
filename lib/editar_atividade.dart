@@ -225,7 +225,7 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
               ),
               const SizedBox(height: 30),
               const Text(
-                "Componentes da Atividade:",
+                "Subtarefas da Atividade:",
                 style: TextStyle(
                   fontSize: 12,
                   fontFamily: "Roboto",
