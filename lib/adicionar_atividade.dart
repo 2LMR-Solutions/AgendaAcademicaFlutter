@@ -1,9 +1,5 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'pagina_inicial.dart';
 
 class TelaAtividade extends StatefulWidget {
   final Function(Map<String, dynamic>) adicionarAtividade;
@@ -164,15 +160,6 @@ class _TelaAtividadeState extends State<TelaAtividade> {
                 ),
               ),
             ),
-            /*const Text(
-          "Editar Atividade",
-          style: TextStyle(
-            fontSize: 20,
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),*/
           ],
         );
       },

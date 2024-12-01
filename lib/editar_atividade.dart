@@ -97,6 +97,11 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
     };
 
     Navigator.pop(context, atividadeEditada); // Retorna os dados editados
+
+    // Exibe o SnackBar de sucesso após salvar a atividade
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Atividade salva com sucesso!')),
+    );
   }
 
 // Função para excluir a atividade
@@ -180,15 +185,6 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                 ),
               ),
             ),
-            /*const Text(
-          "Editar Atividade",
-          style: TextStyle(
-            fontSize: 20,
-            fontFamily: 'Roboto',
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),*/
           ],
         );
       },
@@ -415,7 +411,7 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize
-                        .min, // Certifique-se de que o botão tenha o tamanho mínimo necessário
+                        .min,
                     children: const [
                       Text("Excluir Atividade"),
                       SizedBox(width: 8), // Espaço entre o texto e o ícone

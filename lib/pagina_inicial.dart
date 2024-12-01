@@ -7,6 +7,7 @@ import 'adicionar_atividade.dart';
 import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'pagina_graficos.dart';
 
 class PaginaInicial extends StatefulWidget {
   const PaginaInicial({super.key});
@@ -233,7 +234,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
           leading: Container(width: 50),
         ),
         body: SingleChildScrollView(
-          // Agora o conteúdo é rolável
           child: Column(
             children: [
               const Padding(
@@ -256,7 +256,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                     const BoxConstraints(maxHeight: 220, minHeight: 56.0),
                 child: ListView.builder(
                   shrinkWrap:
-                      true, // Agora a lista ocupa apenas o espaço necessário
+                      true,
                   itemCount: atividades.length,
                   itemBuilder: (context, index) {
                     final atividade = atividades[index];
@@ -334,7 +334,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
                                     fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               progressColor:
-                                  index == 0 ? Colors.purple : Colors.orange,
+                                  index == 0 ? Color.fromRGBO(97, 201, 168, 1) : Color.fromRGBO(26, 200, 237, 1),
                               footer: Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
@@ -360,9 +360,14 @@ class _PaginaInicialState extends State<PaginaInicial> {
                         alignment: Alignment.centerLeft,
                         child: ElevatedButton(
                           onPressed: () {
-                            // Lógica do botão "Ver mais"
-                            print("Botão 'Ver mais' clicado!");
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TelaGraficosTarefas(atividades: atividades), // Passar a lista de atividades
+                              ),
+                            );
                           },
+
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: Colors.lightBlue,
