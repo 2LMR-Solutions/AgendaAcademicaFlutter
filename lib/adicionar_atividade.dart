@@ -113,7 +113,6 @@ class _TelaAtividadeState extends State<TelaAtividade> {
     });
   }
 
-
   void _adicionarSubtarefa() {
     TextEditingController novaSubtarefaController = TextEditingController();
 

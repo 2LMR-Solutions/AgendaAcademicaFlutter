@@ -35,7 +35,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
 
   Future<void> _salvarAtividades() async {
     final prefs = await SharedPreferences.getInstance();
-    final atividadesJson = atividades.map((atividade) => jsonEncode(atividade)).toList();
+    final atividadesJson =
+        atividades.map((atividade) => jsonEncode(atividade)).toList();
     await prefs.setStringList('atividades', atividadesJson);
   }
 
@@ -43,7 +44,10 @@ class _PaginaInicialState extends State<PaginaInicial> {
     final prefs = await SharedPreferences.getInstance();
     final atividadesJson = prefs.getStringList('atividades') ?? [];
     setState(() {
-      atividades = atividadesJson.map((json) => jsonDecode(json)).toList().cast<Map<String, dynamic>>();
+      atividades = atividadesJson
+          .map((json) => jsonDecode(json))
+          .toList()
+          .cast<Map<String, dynamic>>();
     });
   }
 
@@ -60,7 +64,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
     });
   }
 
-  void mostrarDetalhesAtividade(BuildContext context, Map<String, dynamic> atividade) {
+  void mostrarDetalhesAtividade(
+      BuildContext context, Map<String, dynamic> atividade) {
     final subtarefas = List<Map<String, dynamic>>.from(atividade['subtarefas']);
     showDialog(
       context: context,
@@ -73,13 +78,16 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Descrição:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Descrição:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(atividade['descricao']),
                     const SizedBox(height: 10),
-                    const Text('Data final:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Data final:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     Text(atividade['data']),
                     const Divider(),
-                    const Text('Subtarefas:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('Subtarefas:',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                     ...subtarefas.asMap().entries.map((entry) {
                       final index = entry.key;
                       final subtarefa = entry.value;
@@ -92,7 +100,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
                             });
                             setState(() {
                               atividade['subtarefas'] = subtarefas;
-                              final atividadeIndex = atividades.indexOf(atividade);
+                              final atividadeIndex =
+                                  atividades.indexOf(atividade);
                               if (atividadeIndex != -1) {
                                 atividades[atividadeIndex] = atividade;
                               }
@@ -137,7 +146,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
                       }
                     });
                   },
-                  child: const Text('Editar', style: TextStyle(color: Colors.blue)),
+                  child: const Text('Editar',
+                      style: TextStyle(color: Colors.blue)),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -152,7 +162,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
   }
 
   double calcularPorcentagemConclusao(Map<String, dynamic> atividade) {
-    final subtarefas = List<Map<String, dynamic>>.from(atividade['subtarefas'] ?? []);
+    final subtarefas =
+        List<Map<String, dynamic>>.from(atividade['subtarefas'] ?? []);
     if (subtarefas.isEmpty) return 0.0;
 
     final totalSubtarefas = subtarefas.length;
@@ -160,7 +171,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
 
     return concluidas / totalSubtarefas;
   }
-
 
   Future<bool> _onWillPop() async {
     return false;
@@ -222,7 +232,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
           ),
           leading: Container(width: 50),
         ),
-        body: SingleChildScrollView( // Agora o conteúdo é rolável
+        body: SingleChildScrollView(
+          // Agora o conteúdo é rolável
           child: Column(
             children: [
               const Padding(
@@ -241,9 +252,11 @@ class _PaginaInicialState extends State<PaginaInicial> {
                 ),
               ),
               ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 220, minHeight: 56.0),
+                constraints:
+                    const BoxConstraints(maxHeight: 220, minHeight: 56.0),
                 child: ListView.builder(
-                  shrinkWrap: true, // Agora a lista ocupa apenas o espaço necessário
+                  shrinkWrap:
+                      true, // Agora a lista ocupa apenas o espaço necessário
                   itemCount: atividades.length,
                   itemBuilder: (context, index) {
                     final atividade = atividades[index];
@@ -302,39 +315,47 @@ class _PaginaInicialState extends State<PaginaInicial> {
                     Row(
                       mainAxisAlignment: atividades.length == 1
                           ? MainAxisAlignment.center
-                          : MainAxisAlignment.spaceEvenly, // Centralizar se houver 1 gráfico
+                          : MainAxisAlignment
+                              .spaceEvenly, // Centralizar se houver 1 gráfico
                       children: List.generate(
                         2, // Gerar até 2 gráficos
-                            (index) {
+                        (index) {
                           if (index < atividades.length) {
                             final atividade = atividades[index];
-                            final porcentagem = calcularPorcentagemConclusao(atividade);
+                            final porcentagem =
+                                calcularPorcentagemConclusao(atividade);
                             return CircularPercentIndicator(
                               radius: 60.0,
                               lineWidth: 15.0,
                               percent: porcentagem,
                               center: Text(
                                 "${(porcentagem * 100).toStringAsFixed(0)}%",
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              progressColor: index == 0 ? Colors.purple : Colors.orange,
+                              progressColor:
+                                  index == 0 ? Colors.purple : Colors.orange,
                               footer: Padding(
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: Text(
                                   atividade['titulo'],
-                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600),
                                 ),
                               ),
                             );
                           } else {
-                            return const SizedBox.shrink(); // Evitar espaço vazio visível
+                            return const SizedBox
+                                .shrink(); // Evitar espaço vazio visível
                           }
                         },
                       ),
                     ),
                     const SizedBox(height: 10), // Espaço entre gráficos e botão
                     Padding(
-                      padding: const EdgeInsets.only(left: 32.0), // Adicionando espaçamento à esquerda
+                      padding: const EdgeInsets.only(
+                          left: 32.0), // Adicionando espaçamento à esquerda
                       child: Align(
                         alignment: Alignment.centerLeft,
                         child: ElevatedButton(
@@ -348,7 +369,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 7),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 25, vertical: 7),
                           ),
                           child: const Text(
                             "Ver mais",
@@ -363,7 +385,6 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   ],
                 ),
               ),
-
             ],
           ),
         ),
@@ -395,7 +416,8 @@ class _PaginaInicialState extends State<PaginaInicial> {
               case 0:
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const PaginaInicial()),
+                  MaterialPageRoute(
+                      builder: (context) => const PaginaInicial()),
                 );
                 break;
               case 1:
