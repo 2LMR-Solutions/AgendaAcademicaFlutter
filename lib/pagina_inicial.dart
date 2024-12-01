@@ -4,6 +4,7 @@ import 'dart:convert'; // Para converter para JSON
 import 'calendario.dart';
 import 'perfil.dart';
 import 'adicionar_atividade.dart';
+import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
 
 class PaginaInicial extends StatefulWidget {
@@ -64,54 +65,111 @@ class _PaginaInicialState extends State<PaginaInicial> {
         // Converte subtarefas para o tipo correto
         final subtarefas = List<Map<String, dynamic>>.from(atividade['subtarefas']);
 
-        return AlertDialog(
-          title: Text(atividade['titulo']),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Descrição:',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(atividade['descricao']),
-                const SizedBox(height: 10),
-                Text(
-                  'Data final:',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Text(atividade['data']),
-                const Divider(),
-                Text(
-                  'Subtarefas:',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                ...subtarefas.map((subtarefa) {
-                  return ListTile(
-                    leading: Icon(
-                      subtarefa['marcada']
-                          ? Icons.check_box
-                          : Icons.check_box_outline_blank,
-                      color: Color.fromRGBO(181, 33, 226, 1),
+        return StatefulBuilder( // Usa StatefulBuilder para gerenciar estado no diálogo
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(atividade['titulo']),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Descrição:',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                    title: Text(subtarefa['nome']),
-                  );
-                }).toList(),
+                    Text(atividade['descricao']),
+                    const SizedBox(height: 10),
+                    Text(
+                      'Data final:',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(atividade['data']),
+                    const Divider(),
+                    Text(
+                      'Subtarefas:',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    ...subtarefas.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final subtarefa = entry.value;
+
+                      return ListTile(
+                        leading: Checkbox(
+                          value: subtarefa['marcada'],
+                          onChanged: (bool? novaMarcacao) {
+                            setState(() {
+                              subtarefas[index]['marcada'] = novaMarcacao!;
+                              // Atualiza a atividade original
+                              atividade['subtarefas'] = subtarefas;
+                            });
+                            // Atualiza a lista global de atividades e salva
+                            final atividadeIndex = atividades.indexOf(atividade);
+                            if (atividadeIndex != -1) {
+                              setState(() {
+                                atividades[atividadeIndex] = atividade;
+                              });
+                              _salvarAtividades();
+                            }
+                          },
+                          activeColor: const Color.fromRGBO(181, 33, 226, 1),
+                        ),
+                        title: Text(subtarefa['nome']),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Fecha o diálogo atual
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TelaEditarAtividade(
+                          atividade: atividade, // Passa os dados para edição
+                        ),
+                      ),
+                    ).then((atividadeEditada) {
+                      if (atividadeEditada != null) {
+                        if (atividadeEditada == 'excluida') {
+                          // Remove a atividade se ela foi excluída
+                          setState(() {
+                            atividades.remove(atividade);
+                            _salvarAtividades();
+                          });
+                        } else {
+                          // Atualiza a atividade editada na lista
+                          setState(() {
+                            final index = atividades.indexOf(atividade);
+                            if (index != -1) {
+                              atividades[index] = atividadeEditada;
+                              _salvarAtividades();
+                            }
+                          });
+                        }
+                      }
+                    });
+                  },
+                  child: const Text('Editar', style: TextStyle(color: Colors.blue)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Fechar'),
+                ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Fechar'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
+
+
+
+
 
   // Função para bloquear o botão de voltar (pop)
   Future<bool> _onWillPop() async {
@@ -201,31 +259,37 @@ class _PaginaInicialState extends State<PaginaInicial> {
                     ? const Center(
                   child: Text(
                     'Nenhuma atividade cadastrada',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w100),
                   ),
                 )
-                    : ListView.builder(
-                  itemCount: atividades.length,
-                  itemBuilder: (context, index) {
-                    final atividade = atividades[index];
-                    return ListTile(
-                      leading: const Icon(Icons.add_task, color: Colors.green),
-                      title: Text(
-                        atividade['titulo'],
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle: Text(
-                        '${atividade['descricao']}\nData final: ${atividade['data']}',
-                      ),
-                      isThreeLine: true,
-                      trailing: const Icon(Icons.more_horiz),
-                      onTap: () {
-                        mostrarDetalhesAtividade(context, atividade);
-                      },
-                    );
-                  },
+                    : Scrollbar(
+                  thumbVisibility: true, // Mantém a barra de rolagem visível
+                  thickness: 6.0, // Define a largura da barra
+                  radius: const Radius.circular(10), // Bordas arredondadas na barra
+                  child: ListView.builder(
+                    itemCount: atividades.length,
+                    itemBuilder: (context, index) {
+                      final atividade = atividades[index];
+                      return ListTile(
+                        leading: const Icon(Icons.add_task, color: Colors.green),
+                        title: Text(
+                          atividade['titulo'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          '${atividade['descricao']}\nData final: ${atividade['data']}',
+                        ),
+                        isThreeLine: true,
+                        trailing: const Icon(Icons.more_horiz),
+                        onTap: () {
+                          mostrarDetalhesAtividade(context, atividade);
+                        },
+                      );
+                    },
+                  ),
                 ),
-              ),
+              )
+
             ],
           ),
         ),
