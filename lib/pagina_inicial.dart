@@ -6,6 +6,7 @@ import 'perfil.dart';
 import 'adicionar_atividade.dart';
 import 'editar_atividade.dart';
 import 'package:intl/intl.dart';
+import 'package:percent_indicator/percent_indicator.dart';
 
 class PaginaInicial extends StatefulWidget {
   const PaginaInicial({super.key});
@@ -150,6 +151,17 @@ class _PaginaInicialState extends State<PaginaInicial> {
     );
   }
 
+  double calcularPorcentagemConclusao(Map<String, dynamic> atividade) {
+    final subtarefas = List<Map<String, dynamic>>.from(atividade['subtarefas'] ?? []);
+    if (subtarefas.isEmpty) return 0.0;
+
+    final totalSubtarefas = subtarefas.length;
+    final concluidas = subtarefas.where((sub) => sub['marcada'] == true).length;
+
+    return concluidas / totalSubtarefas;
+  }
+
+
   Future<bool> _onWillPop() async {
     return false;
   }
@@ -210,8 +222,7 @@ class _PaginaInicialState extends State<PaginaInicial> {
           ),
           leading: Container(width: 50),
         ),
-        body: ConstrainedBox(
-          constraints: const BoxConstraints(maxHeight: 220, minHeight: 56.0),
+        body: SingleChildScrollView( // Agora o conteúdo é rolável
           child: Column(
             children: [
               const Padding(
@@ -229,41 +240,130 @@ class _PaginaInicialState extends State<PaginaInicial> {
                   ),
                 ),
               ),
-              Expanded(
-                child: atividades.isEmpty
-                    ? const Center(
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 220, minHeight: 56.0),
+                child: ListView.builder(
+                  shrinkWrap: true, // Agora a lista ocupa apenas o espaço necessário
+                  itemCount: atividades.length,
+                  itemBuilder: (context, index) {
+                    final atividade = atividades[index];
+                    return ListTile(
+                      leading: const Icon(Icons.add_task, color: Colors.green),
+                      title: Text(
+                        atividade['titulo'],
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        '${atividade['descricao']}\nData final: ${atividade['data']}',
+                      ),
+                      isThreeLine: true,
+                      trailing: const Icon(Icons.more_horiz),
+                      onTap: () {
+                        mostrarDetalhesAtividade(context, atividade);
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 15),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: const Divider(
+                  height: 1,
+                  color: Color(0xFFb521e2),
+                  thickness: 1,
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              // Título da seção "Gráficos de Progresso"
+              const Padding(
+                padding: EdgeInsets.only(left: 16.0), // Alinhamento à esquerda
+                child: Align(
+                  alignment: Alignment.centerLeft,
                   child: Text(
-                    'Nenhuma atividade cadastrada',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w100),
-                  ),
-                )
-                    : Scrollbar(
-                  thumbVisibility: true,
-                  thickness: 6.0,
-                  radius: const Radius.circular(10),
-                  child: ListView.builder(
-                    itemCount: atividades.length,
-                    itemBuilder: (context, index) {
-                      final atividade = atividades[index];
-                      return ListTile(
-                        leading: const Icon(Icons.add_task, color: Colors.green),
-                        title: Text(
-                          atividade['titulo'],
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Text(
-                          '${atividade['descricao']}\nData final: ${atividade['data']}',
-                        ),
-                        isThreeLine: true,
-                        trailing: const Icon(Icons.more_horiz),
-                        onTap: () {
-                          mostrarDetalhesAtividade(context, atividade);
-                        },
-                      );
-                    },
+                    'Gráficos de Progresso',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontFamily: 'Roboto',
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
                   ),
                 ),
               ),
+
+              // Gráficos de Progresso
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 15), // Espaço antes dos gráficos
+                    Row(
+                      mainAxisAlignment: atividades.length == 1
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment.spaceEvenly, // Centralizar se houver 1 gráfico
+                      children: List.generate(
+                        2, // Gerar até 2 gráficos
+                            (index) {
+                          if (index < atividades.length) {
+                            final atividade = atividades[index];
+                            final porcentagem = calcularPorcentagemConclusao(atividade);
+                            return CircularPercentIndicator(
+                              radius: 60.0,
+                              lineWidth: 15.0,
+                              percent: porcentagem,
+                              center: Text(
+                                "${(porcentagem * 100).toStringAsFixed(0)}%",
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              progressColor: index == 0 ? Colors.purple : Colors.orange,
+                              footer: Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  atividade['titulo'],
+                                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                            );
+                          } else {
+                            return const SizedBox.shrink(); // Evitar espaço vazio visível
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 10), // Espaço entre gráficos e botão
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32.0), // Adicionando espaçamento à esquerda
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Lógica do botão "Ver mais"
+                            print("Botão 'Ver mais' clicado!");
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.lightBlue,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 7),
+                          ),
+                          child: const Text(
+                            "Ver mais",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
             ],
           ),
         ),
