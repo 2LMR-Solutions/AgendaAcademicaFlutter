@@ -374,11 +374,7 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const PaginaInicial()),
-                      );
+                      Navigator.pop(context); // Volta para a tela anterior
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
@@ -410,8 +406,7 @@ class _TelaEditarAtividadeState extends State<TelaEditarAtividade> {
                     ),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize
-                        .min,
+                    mainAxisSize: MainAxisSize.min,
                     children: const [
                       Text("Excluir Atividade"),
                       SizedBox(width: 8), // Espaço entre o texto e o ícone
