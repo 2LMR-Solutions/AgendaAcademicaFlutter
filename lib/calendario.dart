@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'editar_atividade.dart';
 
 class AgendaPage extends StatefulWidget {
   const AgendaPage({super.key});
@@ -25,6 +26,37 @@ class _AgendaPageState extends State<AgendaPage> {
     setState(() {
       today = day;
     });
+  }
+
+  Future<void> _salvarAtividades() async {
+    final prefs = await SharedPreferences.getInstance();
+    final atividadesJson =
+        atividades.map((atividade) => jsonEncode(atividade)).toList();
+    await prefs.setStringList('atividades', atividadesJson);
+  }
+
+  void _editarAtividade(Map<String, dynamic> atividade) async {
+    final atividadeEditada = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TelaEditarAtividade(atividade: atividade),
+      ),
+    );
+
+    if (atividadeEditada != null) {
+      setState(() {
+        // Atualiza a atividade editada na lista
+        int index = atividades.indexWhere((a) =>
+            a['data'] == atividade['data'] &&
+            a['titulo'] == atividade['titulo']);
+        if (index != -1) {
+          atividades[index] = atividadeEditada;
+        }
+      });
+
+      // Salva a lista atualizada no SharedPreferences
+      _salvarAtividades();
+    }
   }
 
   Future<void> _carregarAtividades() async {
@@ -226,13 +258,7 @@ class _AgendaPageState extends State<AgendaPage> {
                       trailing: IconButton(
                         icon: const Icon(Icons.edit),
                         onPressed: () {
-                          // Redireciona para a tela de edição
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => editar_atividade(atividade: atividade),
-                          //   ),
-                          // );
+                          _editarAtividade(atividade); // Chama a edição
                         },
                       ),
                     );
