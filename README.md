@@ -8,4 +8,4 @@ A Agenda Acadêmica é um projeto voltado a estudantes de ensino superior que bu
   <li>Rafaela Gonzatto da Silva</li>
 </ul>
 
-## Video explicativo
+## Vídeo explicativo
